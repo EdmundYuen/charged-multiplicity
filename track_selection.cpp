@@ -34,23 +34,24 @@ void track_selection()
     //variables to check for within 15cm
     vector<float> *fvecVtxzBS = 0; //from branch 54
     tree->SetBranchAddress("vtxzBS", &fvecVtxzBS);
-    int nBeamSize;
+    float nBeamSize;
 
     vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *tracks = 0;
     tree->SetBranchAddress("recoTracksp4", &tracks);
     //vector<TLorentzVector> *tracks = new vector<TLorentzVector>;
 
+    int ntrk;
+
     const double eta_cut = 2.4;
     const double pt_cut = 0.5;
     const double vtxz_number = 1.;
-    const double vtxz_size = 0.15;
-    int nCurr_Evt;
-    TCanvas *canvas = new TCanvas;
+    const double vtxz_size = 10;
+    //TCanvas *canvas = new TCanvas;
     /*TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
     TH1F *pt_histo = new TH1F ("reco_pt", "reco_pT", 200, 0, 20);
     TH1F *eta_histo = new TH1F ("reco_eta", "reco_Eta", 100, -3, 3);
-    TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);*/
-    TH1F *vtxz_plot = new TH1F ("vtxz_number", "vtxz_number", 100, 0, 10);
+    TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);
+    TH1F *vtxz_plot = new TH1F ("vtxz_number", "vtxz_number", 100, 0, 10);*/
 
     //select events with only 1 vertex using information from Branch 46/47/48. Here we use Branch 48 (z-axis)
     Int_t nEvt = (Int_t)tree->GetEntries();
@@ -64,20 +65,55 @@ void track_selection()
         cout << "Entry " << i << endl;
         tree->GetEntry(i);
         cout << "set branch address for zero bias" << endl;
-        nCurr_Evt = i;
         //we select only events that are triggered by ZeroBias Trigger. "True" in ZeroBias evaluate to 1
         if (iZeroBias == 1)
         {
             cout << "track pass zero bias" << endl;
             fvecVtxz_size = fvecVtxz->size();
-            vtxz_plot->Fill(fvecVtxz_size);
+            //vtxz_plot->Fill(fvecVtxz_size);
 
             if (fvecVtxz_size == vtxz_number)
             {
                 cout << "number of vertex for event " << i << " is " << fvecVtxz_size << endl;
 
-                nBeamSize = fabs((*fvecVtxz)[nCurr_Evt] - (*fvecVtxzBS)[0]);
-                cout << "Beam Size is " << nBeamSize << endl;
+                //looping over vertices
+                for (int k = 0; k != fvecVtxz_size; ++k)
+                {
+                    nBeamSize = fabs((*fvecVtxz)[k] - (*fvecVtxzBS)[0]);
+                    cout << "Beam Size is " << nBeamSize << endl;
+
+                    if (nBeamSize <= vtxz_size)
+                    {
+                        ntrk = tracks->size();
+
+                        for (int j = 0; j != ntrk; ++j)
+                        {
+                            XYZTVector vec = (*tracks)[j];
+
+                            if (abs (vec.Eta()) <= eta_cut)
+                            {
+                                cout << "eta cut ok" << endl;
+
+                                if (vec.Pt() > pt_cut)
+                                {
+                                    cout << "pt cut ok" << endl;
+                                    //pt_histo->Fill(vec.Pt());
+                                    //eta_histo->Fill(vec.Eta());
+                                    //phi_histo->Fill(vec.Phi());
+                                }
+
+                                else
+                                    continue;
+                            }
+
+                            else
+                                continue;
+                        }
+                    }
+
+                    else
+                        continue;
+                }
 
             }
 
@@ -89,16 +125,15 @@ void track_selection()
         else
             continue;
 
-        }
+    }
 
-        else
-            continue;
-     }
-vtxz_plot->Draw();
-canvas->Update();
+
+
+//vtxz_plot->Draw();
+//canvas->Update();
 //canvas->SaveAs("vtxz_number.png");
-delete canvas;
-delete vtxz_plot;
+//delete canvas;
+//delete vtxz_plot;
 
 
     //after the loop over all events, draw the resulting plots
