@@ -40,18 +40,20 @@ void track_selection()
     tree->SetBranchAddress("recoTracksp4", &tracks);
     //vector<TLorentzVector> *tracks = new vector<TLorentzVector>;
 
+    //declare variable to hold track number
     int ntrk;
 
     const double eta_cut = 2.4;
     const double pt_cut = 0.5;
     const double vtxz_number = 1.;
     const double vtxz_size = 10;
-    //TCanvas *canvas = new TCanvas;
-    /*TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
-    TH1F *pt_histo = new TH1F ("reco_pt", "reco_pT", 200, 0, 20);
+
+    TCanvas *canvas = new TCanvas;
+    //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
+    TH1F *pt_histo = new TH1F ("reco_pt", "reco_pT", 200, 0, 50);
     TH1F *eta_histo = new TH1F ("reco_eta", "reco_Eta", 100, -3, 3);
     TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);
-    TH1F *vtxz_plot = new TH1F ("vtxz_number", "vtxz_number", 100, 0, 10);*/
+    //TH1F *vtxz_plot = new TH1F ("vtxz_number", "vtxz_number", 100, 0, 10);
 
     //select events with only 1 vertex using information from Branch 46/47/48. Here we use Branch 48 (z-axis)
     Int_t nEvt = (Int_t)tree->GetEntries();
@@ -86,44 +88,35 @@ void track_selection()
                     {
                         ntrk = tracks->size();
 
+                        //looping over tracks
                         for (int j = 0; j != ntrk; ++j)
                         {
                             XYZTVector vec = (*tracks)[j];
 
-                            if (abs (vec.Eta()) <= eta_cut)
+                            if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
                             {
-                                cout << "eta cut ok" << endl;
-
-                                if (vec.Pt() > pt_cut)
-                                {
-                                    cout << "pt cut ok" << endl;
-                                    //pt_histo->Fill(vec.Pt());
-                                    //eta_histo->Fill(vec.Eta());
-                                    //phi_histo->Fill(vec.Phi());
-                                }
-
-                                else
-                                    continue;
+                                phi_histo->Fill(vec.Phi());
                             }
 
-                            else
-                                continue;
+                            if (abs (vec.Eta()) <= eta_cut)
+                            {
+                                pt_histo->Fill(vec.Pt());
+                            }
+
+                            if (vec.Pt() >= pt_cut)
+                            {
+                                eta_histo->Fill(vec.Eta());
+                            }
+
                         }
+
                     }
 
-                    else
-                        continue;
                 }
 
             }
 
-            else
-                continue;
-
         }
-
-        else
-            continue;
 
     }
 
@@ -137,28 +130,28 @@ void track_selection()
 
 
     //after the loop over all events, draw the resulting plots
-/*
+
     canvas->Divide(2,2);
 
     canvas->cd(1);
     gPad->SetLogy();
-    event_histo->Draw();
-    canvas->Update();
-
-    canvas->cd(2);
-    gPad->SetLogy();
     pt_histo->Draw();
     canvas->Update();
 
-    canvas->cd(3);
+    canvas->cd(2);
     eta_histo->Draw();
     canvas->Update();
 
-    canvas->cd(4);
+    canvas->cd(3);
     gPad->SetLogy();
     phi_histo->Draw();
     canvas->Update();
 
-    canvas->SaveAs("track_selection.pdf");
-    canvas->SaveAs("track_selection.png"); */
+    /*canvas->cd();
+    gPad->SetLogy();
+    event_histo->Draw();
+    canvas->Update();*/
+
+    //canvas->SaveAs("track_selection.pdf");
+    canvas->SaveAs("track_selection.png");
 }
