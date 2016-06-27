@@ -24,8 +24,9 @@ void track_selection()
     TTree* tree = (TTree*)myFile->Get("UETree/data");
 
     //for this dataset we want lumisection of 90 and above
-    int nlumisection;
-    tree->SetBranchAddress("lumi", &nlumisection);
+    //data from branch 62
+    int nlumi_section;
+    tree->SetBranchAddress("lumi", &nlumi_section);
 
     int iZeroBias; //data from Branch 60
     tree->SetBranchAddress("trgZeroBias",&iZeroBias);
@@ -59,13 +60,12 @@ void track_selection()
     TH1F *pt_histo = new TH1F ("reco_pt", "reco_pT", 200, 0, 50);
     TH1F *eta_histo = new TH1F ("reco_eta", "reco_Eta", 100, -3, 3);
     TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);
+    TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
     //TH1F *vtxz_plot = new TH1F ("vtxz_number", "vtxz_number", 100, 0, 10);
 
     //select events with only 1 vertex using information from Branch 46/47/48. Here we use Branch 48 (z-axis)
     Int_t nEvt = (Int_t)tree->GetEntries();
     cout << "Tree Entries " << nEvt << endl;
-
-    //select those with lumisection >=90
 
 
     //start loop over events
@@ -74,11 +74,16 @@ void track_selection()
         //if (i%10000 == 0)
             //cout<< "Processing event number: " << i << endl; //1 TTree entry = 1 event
         cout << "Entry " << i << endl;
-        tree->GetEntry(i);
+        tree -> GetEntry(i);
         cout << "set branch address for zero bias" << endl;
-        if (nlumi >= lumi_cut)
+
+        //selects for events from lumisection >= 90
+        if (nlumi_section >= lumi_cut)
         {
-        //we select only events that are triggered by ZeroBias Trigger. "True" in ZeroBias evaluate to 1
+            cout << "lumisection is " << nlumi_section << endl;
+            lumi_histo->Fill(nlumi_section);
+
+            //we select only events that are triggered by ZeroBias Trigger. "True" in ZeroBias evaluate to 1
             if (iZeroBias == 1)
             {
                 cout << "track pass zero bias" << endl;
@@ -161,11 +166,15 @@ void track_selection()
     phi_histo->Draw();
     canvas->Update();
 
+    canvas->cd(4);
+    lumi_histo->Draw();
+    canvas->Update();
+
     /*canvas->cd();
     gPad->SetLogy();
     event_histo->Draw();
     canvas->Update();*/
 
     //canvas->SaveAs("track_selection.pdf");
-    canvas->SaveAs("track_selection.png");
+    canvas->SaveAs("track_selection_lumi_cut.png");
 }
