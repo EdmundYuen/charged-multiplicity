@@ -23,6 +23,10 @@ void track_selection()
     TFile *myFile = TFile::Open("tree1.root", "READ");
     TTree* tree = (TTree*)myFile->Get("UETree/data");
 
+    //for this dataset we want lumisection of 90 and above
+    int nlumisection;
+    tree->SetBranchAddress("lumi", &nlumisection);
+
     int iZeroBias; //data from Branch 60
     tree->SetBranchAddress("trgZeroBias",&iZeroBias);
 
@@ -43,10 +47,12 @@ void track_selection()
     //declare variable to hold track number
     int ntrk;
 
+    const int lumi_cut = 90;
     const double eta_cut = 2.4;
     const double pt_cut = 0.5;
     const double vtxz_number = 1.;
     const double vtxz_size = 10;
+
 
     TCanvas *canvas = new TCanvas;
     //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
@@ -59,6 +65,9 @@ void track_selection()
     Int_t nEvt = (Int_t)tree->GetEntries();
     cout << "Tree Entries " << nEvt << endl;
 
+    //select those with lumisection >=90
+
+
     //start loop over events
     for(Int_t i = 0; i < nEvt; ++i)
     {
@@ -67,45 +76,49 @@ void track_selection()
         cout << "Entry " << i << endl;
         tree->GetEntry(i);
         cout << "set branch address for zero bias" << endl;
-        //we select only events that are triggered by ZeroBias Trigger. "True" in ZeroBias evaluate to 1
-        if (iZeroBias == 1)
+        if (nlumi >= lumi_cut)
         {
-            cout << "track pass zero bias" << endl;
-            fvecVtxz_size = fvecVtxz->size();
-            //vtxz_plot->Fill(fvecVtxz_size);
-
-            if (fvecVtxz_size == vtxz_number)
+        //we select only events that are triggered by ZeroBias Trigger. "True" in ZeroBias evaluate to 1
+            if (iZeroBias == 1)
             {
-                cout << "number of vertex for event " << i << " is " << fvecVtxz_size << endl;
+                cout << "track pass zero bias" << endl;
+                fvecVtxz_size = fvecVtxz->size();
+                //vtxz_plot->Fill(fvecVtxz_size);
 
-                //looping over vertices
-                for (int k = 0; k != fvecVtxz_size; ++k)
+                if (fvecVtxz_size == vtxz_number)
                 {
-                    nBeamSize = fabs((*fvecVtxz)[k] - (*fvecVtxzBS)[0]);
-                    cout << "Beam Size is " << nBeamSize << endl;
+                    cout << "number of vertex for event " << i << " is " << fvecVtxz_size << endl;
 
-                    if (nBeamSize <= vtxz_size)
+                    //looping over vertices
+                    for (int k = 0; k != fvecVtxz_size; ++k)
                     {
-                        ntrk = tracks->size();
+                        nBeamSize = fabs((*fvecVtxz)[k] - (*fvecVtxzBS)[0]);
+                        cout << "Beam Size is " << nBeamSize << endl;
 
-                        //looping over tracks
-                        for (int j = 0; j != ntrk; ++j)
+                        if (nBeamSize <= vtxz_size)
                         {
-                            XYZTVector vec = (*tracks)[j];
+                            ntrk = tracks->size();
 
-                            if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
+                            //looping over tracks
+                            for (int j = 0; j != ntrk; ++j)
                             {
-                                phi_histo->Fill(vec.Phi());
-                            }
+                                XYZTVector vec = (*tracks)[j];
 
-                            if (abs (vec.Eta()) <= eta_cut)
-                            {
-                                pt_histo->Fill(vec.Pt());
-                            }
+                                if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
+                                {
+                                    phi_histo->Fill(vec.Phi());
+                                }
 
-                            if (vec.Pt() >= pt_cut)
-                            {
-                                eta_histo->Fill(vec.Eta());
+                                if (abs (vec.Eta()) <= eta_cut)
+                                {
+                                    pt_histo->Fill(vec.Pt());
+                                }
+
+                                if (vec.Pt() >= pt_cut)
+                                {
+                                    eta_histo->Fill(vec.Eta());
+                                }
+
                             }
 
                         }
@@ -119,6 +132,7 @@ void track_selection()
         }
 
     }
+
 
 
 
