@@ -58,10 +58,10 @@ void track_selection()
     TCanvas *canvas = new TCanvas;
     //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
     TH1F *pt_histo = new TH1F ("reco_pt", "reco_pT", 200, 0, 50);
-    TH1F *eta_histo = new TH1F ("reco_eta", "reco_Eta", 100, -3, 3);
+    TH1F *eta_histo = new TH1F ("reco_eta", "reco_Eta", 100, -4, 4);
     TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);
     TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
-    //TH1F *vtxz_plot = new TH1F ("vtxz_number", "vtxz_number", 100, 0, 10);
+    TH1F *multiplicity = new TH1F ("multiplicity", "Multiplicity", 250, 0, 250);
 
     //select events with only 1 vertex using information from Branch 46/47/48. Here we use Branch 48 (z-axis)
     Int_t nEvt = (Int_t)tree->GetEntries();
@@ -81,7 +81,7 @@ void track_selection()
         if (nlumi_section >= lumi_cut)
         {
             cout << "lumisection is " << nlumi_section << endl;
-            lumi_histo->Fill(nlumi_section);
+
 
             //we select only events that are triggered by ZeroBias Trigger. "True" in ZeroBias evaluate to 1
             if (iZeroBias == 1)
@@ -103,12 +103,14 @@ void track_selection()
                         if (nBeamSize <= vtxz_size)
                         {
                             ntrk = tracks->size();
+                            lumi_histo->Fill(nlumi_section);
 
                             //looping over tracks
                             for (int j = 0; j != ntrk; ++j)
                             {
                                 XYZTVector vec = (*tracks)[j];
 
+                                (*multiplicity) = (*eta_histo)/(*phi_histo);
                                 if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
                                 {
                                     phi_histo->Fill(vec.Phi());
@@ -123,6 +125,7 @@ void track_selection()
                                 {
                                     eta_histo->Fill(vec.Eta());
                                 }
+
 
                             }
 
@@ -167,7 +170,7 @@ void track_selection()
     canvas->Update();
 
     canvas->cd(4);
-    lumi_histo->Draw();
+    multiplicity->Draw();
     canvas->Update();
 
     /*canvas->cd();
@@ -176,5 +179,5 @@ void track_selection()
     canvas->Update();*/
 
     //canvas->SaveAs("track_selection.pdf");
-    canvas->SaveAs("track_selection_lumi_cut.png");
+    canvas->SaveAs("track_selection_eta X phi trial.png");
 }
