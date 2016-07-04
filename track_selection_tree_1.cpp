@@ -45,10 +45,26 @@ void track_selection_tree_1()
     tree->SetBranchAddress("recoTracksp4", &tracks);
     //vector<TLorentzVector> *tracks = new vector<TLorentzVector>;
 
+    vector<float> *fVec_dz = 0;
+    tree->SetBranchAddress ("recoTracksdz", &fVec_dz);
+    vector<float> *fVec_dzErr = 0;
+    tree->SetBranchAddress ("recoTracksdzErr", &fVec_dzErr);
+
+    vector<float> *fVec_d0 = 0;
+    tree->SetBranchAddress ("recoTracksd0", &fVec_d0);
+    vector<float> *fVec_d0Err = 0;
+    tree->SetBranchAddress ("recoTracksd0Err", &fVec_d0Err);
+
+    vector<float> *fVec_ptErr = 0;
+    tree->SetBranchAddress("recoTracksptErr", &fVec_ptErr);
+
+    vector<int> *nVec_HighPurity = 0;
+    tree->SetBranchAddress ("recoTrackshighPurity", &nVec_HighPurity);
+
     //declare variable to hold track number
-    int ntrk;
-    int nMulti;
-    int ntrk_normalized = 0;
+    int ntrk, nMulti, ntrk_normalized;
+    int nHigh_Purity = 0;
+    float dz_dzErr, d0_d0Err, pt_ptErr;
 
     const int lumi_cut = 90;
     const double eta_cut = 2.4;
@@ -65,6 +81,9 @@ void track_selection_tree_1()
     TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);
     TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
     TH1F *multiplicity = new TH1F ("multiplicity", "Multiplicity", 200, 0, 200);
+    TH1F *dz_sigmadz = new TH1F ("dz_sigmadz", "Normalized_dz_sigmadz", 200, 0, 200);
+    TH1F *d0_sigmad0 = new TH1F ("d0_sigmad0", "Normalized_d0_sigmad0", 200, 0, 200);
+    TH1F *pt_sigmapt = new TH1F ("pt_sigmapt", "Normalized_pt_sigmapt", 200, 0, 200);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
 
     //select events with only 1 vertex using information from Branch 46/47/48. Here we use Branch 48 (z-axis)
@@ -117,14 +136,26 @@ void track_selection_tree_1()
                             for (int j = 0; j != ntrk; ++j)
                             {
                                 XYZTVector vec = (*tracks)[j];
+                                dz_dzErr = ((*fVec_dz)[j])/((*fVec_dzErr)[j]);
+                                d0_d0Err = ((*fVec_d0)[j])/((*fVec_d0Err)[j]);
+                                pt_ptErr = ((vec.Pt())/(*fVec_ptErr)[j]);
 
-                                if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
+                                if ((*nVec_HighPurity)[j] == 1)
                                 {
-                                    phi_histo->Fill(vec.Phi());
-                                    pt_histo->Fill(vec.Pt());
-                                    eta_histo->Fill(vec.Eta());
-                                    ++nMulti;
+                                    if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
+                                    {
+                                        phi_histo->Fill(vec.Phi());
+                                        pt_histo->Fill(vec.Pt());
+                                        eta_histo->Fill(vec.Eta());
+                                        dz_sigmadz->Fill(dz_dzErr);
+                                        d0_sigmad0->Fill(d0_d0Err);
+                                        pt_sigmapt->Fill(pt_ptErr);
+                                        ++nMulti;
+                                    }
+                                    ++nHigh_Purity;
                                 }
+
+
 
                                 /*if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
                                 {
@@ -154,8 +185,7 @@ void track_selection_tree_1()
 
     }
 
-    cout << ntrk_normalized << endl;
-
+    cout << "Total number of selected tracks is " << ntrk_normalized << endl;
 
 //vtxz_plot->Draw();
 //canvas->Update();
@@ -166,11 +196,18 @@ void track_selection_tree_1()
 
     //after the loop over all events, draw the resulting plots
 
-    canvas->Divide(1,0);
+    canvas->Divide(0,1);
+    /*canvas->cd(1);
     gPad->SetLogy();
-    multiplicity->DrawNormalized("", 1);
-    canvas->Update();
+    dz_sigmadz->DrawNormalized("", 1);
 
+    canvas->cd(2);
+    gPad->SetLogy();
+    d0_sigmad0->DrawNormalized("", 1);*/
+
+    gPad->SetLogy();
+    pt_sigmapt->DrawNormalized("", 1);
+    canvas->Update();
 
     /*canvas->cd(1);
     gPad->SetLogy();
@@ -197,5 +234,5 @@ void track_selection_tree_1()
 
 
     //canvas->SaveAs("track_selection.pdf");
-    canvas->SaveAs("tree1_multiplicity.png");
+    canvas->SaveAs("tree_1_pt_ptErr.png");
 }
