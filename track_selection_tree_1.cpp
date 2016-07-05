@@ -62,7 +62,8 @@ void track_selection_tree_1()
     tree->SetBranchAddress ("recoTrackshighPurity", &nVec_HighPurity);
 
     //declare variable to hold track number
-    int ntrk, nMulti, ntrk_normalized;
+    int ntrk, nMulti;
+    int ntrk_normalized = 0;
     int nHigh_Purity = 0;
     float dz_dzErr, d0_d0Err, pt_ptErr;
 
@@ -76,11 +77,11 @@ void track_selection_tree_1()
 
     TCanvas *canvas = new TCanvas;
     //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
-    TH1F *pt_histo = new TH1F ("reco_pt", "reco_pT", 100, 0, 100);
-    TH1F *eta_histo = new TH1F ("reco_eta", "reco_Eta", 25, -3, 3);
-    TH1F *phi_histo = new TH1F ("reco_phi", "reco_Phi", 100, -4, 4);
+    TH1F *pt_histo = new TH1F ("reco_pt", "Normalized_reco_pT", 100, 0, 100);
+    TH1F *eta_histo = new TH1F ("reco_eta", "Normalized_reco_Eta", 25, -3, 3);
+    TH1F *phi_histo = new TH1F ("reco_phi", "Normalized_reco_Phi", 100, -4, 4);
     TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
-    TH1F *multiplicity = new TH1F ("multiplicity", "Multiplicity", 200, 0, 200);
+    TH1F *multiplicity = new TH1F ("multiplicity", "Normalized_Multiplicity", 200, 0, 200);
     TH1F *dz_sigmadz = new TH1F ("dz_sigmadz", "Normalized_dz_sigmadz", 200, 0, 200);
     TH1F *d0_sigmad0 = new TH1F ("d0_sigmad0", "Normalized_d0_sigmad0", 200, 0, 200);
     TH1F *pt_sigmapt = new TH1F ("pt_sigmapt", "Normalized_pt_sigmapt", 200, 0, 200);
@@ -196,43 +197,46 @@ void track_selection_tree_1()
 
     //after the loop over all events, draw the resulting plots
 
-    canvas->Divide(0,1);
+    canvas->Divide(2,3);
     /*canvas->cd(1);
     gPad->SetLogy();
     dz_sigmadz->DrawNormalized("", 1);
 
     canvas->cd(2);
     gPad->SetLogy();
-    d0_sigmad0->DrawNormalized("", 1);*/
+    d0_sigmad0->DrawNormalized("", 1);
 
+    gPad->SetLogy();
+    pt_sigmapt->DrawNormalized("", 1);
+    canvas->Update();*/
+
+    canvas->cd(1);
+    gPad->SetLogy();
+    pt_histo->DrawNormalized("", 1);
+    //canvas->Update();
+
+    canvas->cd(2);
+    gPad->SetLogy();
+    eta_histo->DrawNormalized("", 1);
+    //canvas->Update();
+
+    canvas->cd(3);
+    gPad->SetLogy();
+    phi_histo->DrawNormalized("",1);
+    //canvas->Update();
+
+    canvas->cd(4);
+    gPad->SetLogy();
+    dz_sigmadz->DrawNormalized("", 1);
+
+    canvas->cd(5);
+    gPad->SetLogy();
+    d0_sigmad0->DrawNormalized("", 1);
+
+    canvas->cd(6);
     gPad->SetLogy();
     pt_sigmapt->DrawNormalized("", 1);
     canvas->Update();
 
-    /*canvas->cd(1);
-    gPad->SetLogy();
-    pt_histo->Draw();
-    canvas->Update();
-
-    canvas->cd(2);
-    eta_histo->Draw();
-    canvas->Update();
-
-    canvas->cd(3);
-    gPad->SetLogy();
-    phi_histo->DrawNormalized("",5);
-    canvas->Update();
-
-    canvas->cd(4);
-    gPad->SetLogy();
-    multiplicity->DrawNormalized("", 1);
-    canvas->Update();
-
-    canvas->cd(5);
-    gPad->SetLogy();
-    normalized_multiplicity_histo->Draw();*/
-
-
-    //canvas->SaveAs("track_selection.pdf");
-    canvas->SaveAs("tree_1_pt_ptErr.png");
+    canvas->SaveAs("tree_1_relative_errors.pdf");
 }
