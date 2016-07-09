@@ -95,7 +95,7 @@ void trees1_CUETP8M1_66()
     TH1F *reco_phi_histo = new TH1F ("reco_phi", "Normalized_reco_Phi", 80, -4, 4);
     TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
     TH1F *reco_multiplicity = new TH1F ("reco_multiplicity", "Normalized_reco_Multiplicity", 200, 0, 200);
-    TH1F *reco_dz_sigmadz = new TH1F ("dz_sigmadz", "reco_dz_sigmadz", 200, -10, 10);
+    TH1F *reco_dz_sigmadz = new TH1F ("dz_sigmadz", "reco_dz_sigmadz", 100, -10, 10);
     TH1F *reco_d0_sigmad0 = new TH1F ("d0_sigmad0", "reco_d0_sigmad0", 200, -10, 10);
     TH1F *reco_sigmapt_pt = new TH1F ("sigmapt_pt", "reco_sigmapt_pt", 80, 0, 0.8);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
@@ -323,7 +323,7 @@ void trees1_CUETP8M1_66()
     TH1F *MC_eta_histo = new TH1F ("MC_eta", "MC_Eta", 60, -3, 3);
     TH1F *MC_phi_histo = new TH1F ("MC_phi", "MC_Phi", 80, -4, 4);
     TH1F *MC_multiplicity = new TH1F ("MC_multiplicity", "MC_Multiplicity", 200, 0, 200);
-    TH1F *MC_dz_sigmadz = new TH1F ("dz_sigmadz", "MC_dz_sigmadz", 200, -10, 10);
+    TH1F *MC_dz_sigmadz = new TH1F ("dz_sigmadz", "MC_dz_sigmadz", 100, -10, 10);
     TH1F *MC_d0_sigmad0 = new TH1F ("d0_sigmad0", "MC_d0_sigmad0", 200, -10, 10);
     TH1F *MC_sigmapt_pt = new TH1F ("sigmapt_pt", "MC_sigmapt_pt", 80, 0, 0.8);
     //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
@@ -431,11 +431,12 @@ void trees1_CUETP8M1_66()
 
     reco_canvas->cd(1);
     gPad->SetLogy();
+    reco_pt_histo->Scale(1/dreco_evt);
     reco_pt_histo->Draw();
 
     reco_canvas->cd(2);
     gPad->SetLogy();
-    //reco_eta_histo->Scale(1/dreco_evt);
+    reco_eta_histo->Scale(1/dreco_evt);
     reco_eta_histo->Draw();
 
     reco_canvas->cd(3);
@@ -445,18 +446,21 @@ void trees1_CUETP8M1_66()
 
     reco_canvas->cd(4);
     gPad->SetLogy();
+    reco_dz_sigmadz->Scale(1/dreco_trk);
     reco_dz_sigmadz->Draw();
 
     reco_canvas->cd(5);
     gPad->SetLogy();
+    reco_d0_sigmad0->Scale(1/dreco_trk);
     reco_d0_sigmad0->Draw();
 
     reco_canvas->cd(6);
     gPad->SetLogy();
+    reco_sigmapt_pt->Scale(1/dreco_trk);
     reco_sigmapt_pt->Draw();
     reco_canvas->Write();
     reco_canvas->Update();
-    //reco_canvas->SaveAs("data plots.pdf");
+    reco_canvas->SaveAs("data plots.pdf");
 
     //-----------------------------output MC histo------------------------------
 
@@ -464,6 +468,7 @@ void trees1_CUETP8M1_66()
 
     MC_canvas->cd(1);
     gPad->SetLogy();
+    MC_pt_histo->Scale(1/dMC_evt);
     MC_pt_histo->Draw();
     //MC_multiplicity->SetLineColor(kBlue+2);
     //MC_multiplicity->DrawNormalized("", 1);
@@ -478,24 +483,25 @@ void trees1_CUETP8M1_66()
     MC_canvas->cd(3);
     gPad->SetLogy();
     //MC_phi_histo->SetLineColor(kGreen);
-    //MC_phi_histo->Scale(1/dMC_evt, "SAME");
+    MC_phi_histo->Scale(1/dMC_evt);
     MC_phi_histo->Draw();
 
     MC_canvas->cd(4);
     gPad->SetLogy();
+    MC_dz_sigmadz->Scale(1/dMC_trk);
     MC_dz_sigmadz->Draw();
 
     MC_canvas->cd(5);
     gPad->SetLogy();
+    MC_d0_sigmad0->Scale(1/dMC_trk);
     MC_d0_sigmad0->Draw();
 
     MC_canvas->cd(6);
     gPad->SetLogy();
+    MC_sigmapt_pt->Scale(1/dMC_trk);
     MC_sigmapt_pt->Draw();
 
     MC_canvas->Write();
     MC_canvas->Update();
-    //MC_canvas->SaveAs("MC Plots.pdf");
-
-
+    MC_canvas->SaveAs("MC Plots.pdf");
 }
