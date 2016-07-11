@@ -20,7 +20,7 @@ void track_selection()
    //gROOT->ProcessLine(".L Loader.C+");
 
     // attach "UETree/data" of tree1.root as the main root file for this program
-    TFile *myFile = TFile::Open("tree1.root", "READ");
+    TFile *myFile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/trees_10.root", "READ");
     TTree* tree = (TTree*)myFile->Get("UETree/data");
 
     //for this dataset we want lumisection of 90 and above
