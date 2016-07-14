@@ -11,6 +11,7 @@
 #include "TMath.h"
 #include "Math/Vector3D.h"
 #include "Math/Vector4D.h"
+#include "TLegend.h"
 
 using namespace std;
 using namespace ROOT::Math;
@@ -70,6 +71,18 @@ void trees1_CUETP8M1_66()
 	vector<float> *fvec_reco_vtxx = 0; //require initialisation to 0 to avoid crash
     tree->SetBranchAddress("vtxx",&fvec_reco_vtxx);
 
+    vector<float> *fvec_reco_trackschi2n = 0;
+    tree->SetBranchAddress("recoTrackschi2n", &fvec_reco_trackschi2n);
+    float freco_chi2n;
+
+    vector<int> *nvec_reco_validhits = 0;
+    tree->SetBranchAddress("recoTracksnValidHits", &nvec_reco_validhits);
+    int nreco_validhits;
+
+    vector<int> *nvec_reco_ndof = 0;
+    tree->SetBranchAddress("vtxndof", &nvec_reco_ndof);
+
+
     double dzleaf = 0;
 	double dzcalc = 0;
 	double dzminus= 0;
@@ -79,8 +92,15 @@ void trees1_CUETP8M1_66()
 	double d0minus = 0;
 
     int nreco_totaltrk;
-    double dreco_trk = 0;
+    double dreco_trk;
+    double dreco_trkpterr = 0;
+    double dreco_trkd0err = 0;
+    double dreco_trkdzerr = 0;
+    double dreco_trkpt = 0;
+    double dreco_trketa = 0;
+    double dreco_trkphi = 0;
     double dreco_evt = 0;
+
     int nreco_trk_normalized = 0;
     int nreco_HighPurity = 0;
     float dz_dzErr, d0_d0Err, ptErr_pt;
@@ -90,7 +110,7 @@ void trees1_CUETP8M1_66()
     TCanvas *reco_canvas = new TCanvas;
     //TCanvas *gen_canvas = new TCanvas;
     //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
-    TH1F *reco_pt_histo = new TH1F ("reco_pt", "Normalized_reco_pT", 100, 0, 20);
+    TH1F *reco_pt_histo = new TH1F ("reco_pt", "Normalized_reco_pT", 80, 0, 4);
     TH1F *reco_eta_histo = new TH1F ("reco_eta", "Normalized_reco_Eta", 60, -3, 3);
     TH1F *reco_phi_histo = new TH1F ("reco_phi", "Normalized_reco_Phi", 80, -4, 4);
     TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
@@ -99,6 +119,8 @@ void trees1_CUETP8M1_66()
     TH1F *reco_d0_sigmad0 = new TH1F ("d0_sigmad0", "reco_d0_sigmad0", 200, -10, 10);
     TH1F *reco_sigmapt_pt = new TH1F ("sigmapt_pt", "reco_sigmapt_pt", 80, 0, 0.8);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
+    TH1F *reco_validhits = new TH1F ("reco_validhits", "reco_validhits", 100, 0, 50);
+    TH1F *reco_trackschi2 = new TH1F ("reco_trackschi2", "reco_trackschi2", 80, 0, 40);
 
 //---------------------Efficiency-------------------------------------
 
@@ -114,6 +136,9 @@ void trees1_CUETP8M1_66()
     const double pt_cut = 0.5;
     const double vtxz_number = 1.;
     const double vtxz_size = 10;
+    const float d0_d0Err_cut = 3;
+    const float dz_dzErr_cut = 3;
+    const float ptErr_pt_cut = 0.05;
 
     //select events with only 1 vertex using information from Branch 46/47/48. Here we use Branch 48 (z-axis)
     Int_t nEvt = (Int_t)tree->GetEntries();
@@ -202,25 +227,57 @@ void trees1_CUETP8M1_66()
                                         d0_d0Err = ((*fvec_d0)[j])/((*fvec_d0Err)[j]);
                                         ptErr_pt = ((*fvec_ptErr)[j]/(reco_vec.Pt()));
 
+
                                         //fphi_eff = reco_vec.Phi()/gen_vec.Phi();
                                         //feta_eff = reco_vec.Eta()/gen_vec.Eta();
                                         //fpt_eff = reco_vec.Pt()/gen_vec.Pt();
+                                        //reco_dz_sigmadz->Fill(dz_dzErr);
+                                        //reco_d0_sigmad0->Fill(d0_d0Err);
+                                        //reco_sigmapt_pt->Fill(ptErr_pt);
 
-                                        //pt_efficiency->Fill(fpt_eff);
-                                        //eta_efficiency->Fill(feta_eff);
-                                        //phi_efficiency->Fill(fphi_eff);
-                                        reco_phi_histo->Fill(reco_vec.Phi());
-                                        reco_pt_histo->Fill(reco_vec.Pt());
-                                        reco_eta_histo->Fill(reco_vec.Eta());
-                                        reco_dz_sigmadz->Fill(dz_dzErr);
-                                        reco_d0_sigmad0->Fill(d0_d0Err);
-                                        reco_sigmapt_pt->Fill(ptErr_pt);
-                                        ++dreco_trk;
-
-                                        /*if (ptErr_pt < 0.05 && (d0_d0Err < 5 && dz_dzErr < 5))
+                                        if (abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut)
                                         {
+                                            reco_dz_sigmadz->Fill(dz_dzErr);
+                                            ++dreco_trkdzerr;
+                                        }
 
-                                        }*/
+                                        if (abs(ptErr_pt) < ptErr_pt_cut && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            reco_d0_sigmad0->Fill(d0_d0Err);
+                                            ++dreco_trkd0err;
+                                        }
+
+                                        if (abs(d0_d0Err) < d0_d0Err_cut && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            reco_sigmapt_pt->Fill(ptErr_pt);
+                                            ++dreco_trkpterr;
+                                        }
+
+                                        if((abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut) && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            reco_phi_histo->Fill(reco_vec.Phi());
+                                            reco_validhits->Fill((*nvec_reco_validhits)[j]);
+                                            reco_trackschi2->Fill((*fvec_reco_trackschi2n)[j]);
+                                            ++dreco_trk;
+                                        }
+                                    }
+
+                                    if(abs(reco_vec.Eta()) <= eta_cut)
+                                    {
+                                        if ((abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut) && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            reco_pt_histo->Fill(reco_vec.Pt());
+                                            ++dreco_trkpt;
+                                        }
+                                    }
+
+                                    if(abs(reco_vec.Pt()) >= pt_cut)
+                                    {
+                                        if ((abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut) && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            reco_eta_histo->Fill(reco_vec.Eta());
+                                            ++dreco_trketa;
+                                        }
                                     }
                                     ++nreco_HighPurity;
                                 }
@@ -307,19 +364,28 @@ void trees1_CUETP8M1_66()
 	vector<float> *fvec_MC_vtxx = 0; //require initialisation to 0 to avoid crash
     MCtree->SetBranchAddress("vtxx",&fvec_MC_vtxx);
 
+    vector<float> *fvec_MC_trackschi2n = 0;
+    MCtree->SetBranchAddress("recoTrackschi2n", &fvec_MC_trackschi2n);
+
+    vector<int> *nvec_MC_validhits = 0;
+    MCtree->SetBranchAddress("recoTracksnValidHits", &nvec_MC_validhits);
+
     int nMC_trk = 0;
     int nMC_Multi = 0;
     int nMC_HighPurity = 0;
     nEvt = 0;
     double dMC_evt = 0;
     double dMC_trk = 0;
+    double dMC_trkd0err = 0;
+    double dMC_trkdzerr = 0;
+    double dMC_trkpterr = 0;
     int nMC_totaltrk;
 
 
 //---------------------Histograms for MC tracks-------------------------------------------
 
     TCanvas *MC_canvas = new TCanvas;
-    TH1F *MC_pt_histo = new TH1F ("MC_pt", "MC_pT", 100, 0, 20);
+    TH1F *MC_pt_histo = new TH1F ("MC_pt", "MC_pT", 80, 0, 4);
     TH1F *MC_eta_histo = new TH1F ("MC_eta", "MC_Eta", 60, -3, 3);
     TH1F *MC_phi_histo = new TH1F ("MC_phi", "MC_Phi", 80, -4, 4);
     TH1F *MC_multiplicity = new TH1F ("MC_multiplicity", "MC_Multiplicity", 200, 0, 200);
@@ -328,6 +394,8 @@ void trees1_CUETP8M1_66()
     TH1F *MC_sigmapt_pt = new TH1F ("sigmapt_pt", "MC_sigmapt_pt", 80, 0, 0.8);
     //TH1F *event_histo = new TH1F ("reco_evt", "reco_evt", 100, 0, 200);
     //TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
+    TH1F *MC_validhits = new TH1F ("MC_validhits", "MC_validhits", 100, 0, 50);
+    TH1F *MC_trackschi2 = new TH1F ("MC_trackschi2", "MC_trackschi2", 80, 0, 40);
 
 
     nEvt = (Int_t)MCtree->GetEntries();
@@ -372,6 +440,7 @@ void trees1_CUETP8M1_66()
                             for (int j = 0; j != nMC_totaltrk; ++j)
                             {
                                 XYZTVector MC_vec = (*MC_tracks)[j];
+                                dMC_trk = 0;
 
                                  if ((*nvec_MC_HighPurity)[j] == 1)
                                  {
@@ -389,20 +458,54 @@ void trees1_CUETP8M1_66()
                                         //eta_efficiency->Fill(feta_eff);
                                         //phi_efficiency->Fill(fphi_eff);
                                         MC_phi_histo->Fill(MC_vec.Phi());
-                                        MC_pt_histo->Fill(MC_vec.Pt());
-                                        MC_eta_histo->Fill(MC_vec.Eta());
-                                        MC_dz_sigmadz->Fill(dz_dzErr);
-                                        MC_d0_sigmad0->Fill(d0_d0Err);
-                                        MC_sigmapt_pt->Fill(ptErr_pt);
-                                        ++dMC_trk;
-                                        /*if (ptErr_pt < 0.05 && (d0_d0Err < 5 && dz_dzErr < 5))
-                                        {
 
-                                        }*/
+                                        if ((abs(ptErr_pt)) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut)
+                                        {
+                                            MC_dz_sigmadz->Fill(dz_dzErr);
+                                            ++dMC_trkdzerr;
+                                        }
+
+                                        if (abs(ptErr_pt) < ptErr_pt_cut && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            MC_d0_sigmad0->Fill(d0_d0Err);
+                                            ++dMC_trkd0err;
+                                        }
+
+                                        if (abs(d0_d0Err) < d0_d0Err_cut && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            MC_sigmapt_pt->Fill(ptErr_pt);
+                                            ++dMC_trkpterr;
+                                        }
+
+                                        if((abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut) && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            MC_phi_histo->Fill(MC_vec.Phi());
+                                            MC_validhits->Fill((*nvec_MC_validhits)[j]);
+                                            MC_trackschi2->Fill((*fvec_MC_trackschi2n)[j]);
+                                            ++dMC_trk;
+                                        }
                                     }
+
+                                    if (MC_vec.Pt() >= pt_cut)
+                                    {
+                                        if((abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut) && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            MC_eta_histo->Fill(MC_vec.Eta());
+                                        }
+                                    }
+
+                                    if (abs (MC_vec.Eta()) <= eta_cut)
+                                    {
+                                        if ((abs(ptErr_pt) < ptErr_pt_cut && abs(d0_d0Err) < d0_d0Err_cut) && abs(dz_dzErr) < dz_dzErr_cut)
+                                        {
+                                            MC_pt_histo->Fill(MC_vec.Pt());
+                                        }
+                                    }
+
                                     ++nMC_HighPurity;
                                 }
                             }
+                            MC_multiplicity->Fill(dMC_trk);
                         }
                     }
                 }
@@ -421,11 +524,37 @@ void trees1_CUETP8M1_66()
 
 
     //after the loop over all events, draw the resulting plots
-    cout << "d0leaf is " << d0leaf << " d0calc is "<< d0calc << endl;
+    cout << "The number of tracks for data dz_sigmadz is " << dreco_trkdzerr << endl;
+    cout << "The number of tracks for data d0_sigmad0 is " << dreco_trkd0err << endl;
+    cout << "The number of tracks for data sigmapt_pt is " << dreco_trkpterr << endl;
+    cout << "The number of tracks for MC dz_sigmadz is " << dMC_trkdzerr << endl;
+    cout << "The number of tracks for MC d0_sigmad0 is " << dMC_trkd0err<< endl;
+    cout << "The number of tracks for MC sigmapt_pt is " << dMC_trkpterr << endl;
+    cout << "Total number of data events is " << dreco_evt << endl;
+    cout << "Total number of MC events is " << dMC_evt << endl;
 
-    TFile histo("histo.root", "new");
+    TFile histo("histo.root", "recreate");
 
     //-----------------------------output reco histo------------------------------
+
+    gPad->SetLogy();
+    reco_multiplicity->Write();
+
+    TCanvas *creco_validhits = new TCanvas ("valid hits", "normalized valid hits");
+    creco_validhits->cd(1);
+    gPad->SetLogy();
+    reco_validhits->Scale(1/dreco_evt);
+    reco_validhits->Draw();
+    reco_validhits->Write();
+
+    TCanvas *creco_chi2n = new TCanvas ("chi2n", "normalized chi2n");
+    creco_chi2n->cd(1);
+    gPad->SetLogy();
+    TLegend *reco_leg_validhits = new TLegend (0.1, 0.75, 0.38, 0.9);
+    reco_leg_validhits->AddEntry(reco_trackschi2, "Reconstructed chi2", "L");
+    reco_trackschi2->Scale(1/dreco_evt);
+    reco_trackschi2->Draw();
+    reco_trackschi2->Write();
 
     reco_canvas->Divide(3,2);
 
@@ -433,36 +562,60 @@ void trees1_CUETP8M1_66()
     gPad->SetLogy();
     reco_pt_histo->Scale(1/dreco_evt);
     reco_pt_histo->Draw();
+    reco_pt_histo->Write();
 
     reco_canvas->cd(2);
     gPad->SetLogy();
     reco_eta_histo->Scale(1/dreco_evt);
     reco_eta_histo->Draw();
+    reco_eta_histo->Write();
 
     reco_canvas->cd(3);
     gPad->SetLogy();
     reco_phi_histo->Scale(1/dreco_evt);
     reco_phi_histo->Draw();
+    reco_phi_histo->Write();
 
     reco_canvas->cd(4);
     gPad->SetLogy();
-    reco_dz_sigmadz->Scale(1/dreco_trk);
+    reco_dz_sigmadz->Scale(1/dreco_trkdzerr);
     reco_dz_sigmadz->Draw();
+    reco_dz_sigmadz->Write();
 
     reco_canvas->cd(5);
     gPad->SetLogy();
-    reco_d0_sigmad0->Scale(1/dreco_trk);
+    reco_d0_sigmad0->Scale(1/dreco_trkd0err);
     reco_d0_sigmad0->Draw();
+    reco_d0_sigmad0->Write();
 
     reco_canvas->cd(6);
     gPad->SetLogy();
-    reco_sigmapt_pt->Scale(1/dreco_trk);
+    reco_sigmapt_pt->Scale(1/dreco_trkpt);
     reco_sigmapt_pt->Draw();
+    reco_sigmapt_pt->Write();
+
     reco_canvas->Write();
     reco_canvas->Update();
-    reco_canvas->SaveAs("data plots.pdf");
+    //reco_canvas->SaveAs("data plots.pdf");
 
     //-----------------------------output MC histo------------------------------
+
+    gPad->SetLogy();
+    MC_multiplicity->Write();
+
+    TCanvas *cMC_validhits = new TCanvas ("MC validhits", "Normalized MC validhits");
+    cMC_validhits->cd(1);
+    gPad->SetLogy();
+    MC_validhits->Scale(1/dMC_evt);
+    MC_validhits->Draw();
+    MC_validhits->Write();
+
+    TCanvas *cMC_trackschi2n = new TCanvas ("MC trackschi2n", "Normalized MC tracks2n");
+    cMC_trackschi2n->cd(1);
+    gPad->SetLogy();
+    MC_trackschi2->Scale(1/dMC_evt);
+    MC_trackschi2->Draw();
+    MC_trackschi2->Write();
 
     MC_canvas->Divide(3,2);
 
@@ -470,6 +623,7 @@ void trees1_CUETP8M1_66()
     gPad->SetLogy();
     MC_pt_histo->Scale(1/dMC_evt);
     MC_pt_histo->Draw();
+    MC_pt_histo->Write();
     //MC_multiplicity->SetLineColor(kBlue+2);
     //MC_multiplicity->DrawNormalized("", 1);
 
@@ -479,29 +633,36 @@ void trees1_CUETP8M1_66()
     //MC_eta_histo->Scale(1/dMC_evt, "SAME");
     MC_eta_histo->Scale(1/dMC_evt);
     MC_eta_histo->Draw();
+    MC_eta_histo->Write();
 
     MC_canvas->cd(3);
     gPad->SetLogy();
     //MC_phi_histo->SetLineColor(kGreen);
     MC_phi_histo->Scale(1/dMC_evt);
     MC_phi_histo->Draw();
+    MC_phi_histo->Write();
 
     MC_canvas->cd(4);
     gPad->SetLogy();
-    MC_dz_sigmadz->Scale(1/dMC_trk);
+    MC_dz_sigmadz->Scale(1/dMC_trkdzerr);
     MC_dz_sigmadz->Draw();
+    MC_dz_sigmadz->Write();
 
     MC_canvas->cd(5);
     gPad->SetLogy();
-    MC_d0_sigmad0->Scale(1/dMC_trk);
+    MC_d0_sigmad0->Scale(1/dMC_trkd0err);
     MC_d0_sigmad0->Draw();
+    MC_d0_sigmad0->Write();
 
     MC_canvas->cd(6);
     gPad->SetLogy();
-    MC_sigmapt_pt->Scale(1/dMC_trk);
+    MC_sigmapt_pt->Scale(1/dMC_trkpterr);
     MC_sigmapt_pt->Draw();
+    MC_sigmapt_pt->Write();
+
+    histo.Write();
 
     MC_canvas->Write();
     MC_canvas->Update();
-    MC_canvas->SaveAs("MC Plots.pdf");
+    //MC_canvas->SaveAs("MC Plots.pdf");
 }
