@@ -104,11 +104,14 @@ void Track_selection_2()
     vector<int> *nVec_HighPurity = 0;
     tree->SetBranchAddress ("recoTrackshighPurity", &nVec_HighPurity);
 
-    vector<float> *fvec_reco_Vtxy = 0; //require initialisation to 0 to avoid crash
-    tree->SetBranchAddress("vtxy",&fvec_reco_Vtxy);
+    vector<float> *fVec_reco_Vtxy = 0; //require initialisation to 0 to avoid crash
+    tree->SetBranchAddress("vtxy",&fVec_reco_Vtxy);
 
-	vector<float> *fvec_reco_Vtxx = 0; //require initialisation to 0 to avoid crash
-    tree->SetBranchAddress("vtxx",&fvec_reco_Vtxx);
+	vector<float> *fVec_reco_Vtxx = 0; //require initialisation to 0 to avoid crash
+    tree->SetBranchAddress("vtxx",&fVec_reco_Vtxx);
+	
+	vector<int> *fVec_reco_Vtxndof = 0;
+    tree->SetBranchAddress("vtxndof",&fVec_reco_Vtxndof);
 
     double dzleaf = 0;
 	double dzcalc = 0;
@@ -126,6 +129,8 @@ void Track_selection_2()
 	int ntrkd0 = 0;
 	int ntrkdz = 0;
 	int ntrkdpt = 0;
+	int ntrkptcut= 0;
+	int ntrketa = 0;
 	int naccepttrk = 0;
     int ntrk_normalized = 0;
     int nHigh_Purity = 0;
@@ -191,7 +196,7 @@ void Track_selection_2()
                 cout << "track pass zero bias" << endl;
                 fVec_reco_Vtxz_size = fVec_reco_Vtxz->size();
                 //vtxz_plot->Fill(fvecVtxz_size);
-
+/*
 //---------------------Loops for gen tracks-------------------------------------------
 
                 ntrk_gen = gen_tracks->size();
@@ -211,7 +216,7 @@ void Track_selection_2()
                     }
                 }
                 gen_multiplicity->Fill(ngen_Multi);
-
+*/
 
 //---------------------Loops for reco tracks-------------------------------------------
 
@@ -220,6 +225,7 @@ void Track_selection_2()
                     //cout << "number of vertex for event " << i << " is " << fVec_reco_Vtxz_size << endl;
 
                     //looping over vertices
+											
                     for (int k = 0; k != fVec_reco_Vtxz_size; ++k)
                     {
                         n_reco_BeamSize = fabs((*fVec_reco_Vtxz)[k] - (*fVec_reco_VtxzBS)[0]);
@@ -233,116 +239,81 @@ void Track_selection_2()
                             lumi_histo->Fill(nlumi_section);
 
                             d_reco_trk = 0;
-                            ++nreco_evt;
-
-
-                            //looping over tracks
-                            for (int j = 0; j != ntrk_reco_total; ++j)
-                            {
-                                XYZTVector reco_vec = (*reco_tracks)[j];
-
-								/*
-                                if (j == 9)
-								{
-									//dzleaf = (*fVec_dz)[j];
-									dzcalc = ((reco_vec.Z())-(*fVec_reco_Vtxz)[k])-((((reco_vec.X())-(*fvec_reco_Vtxx)[k])*(reco_vec.px())+((reco_vec.Y())-(*fvec_reco_Vtxy)[k])*(reco_vec.py()))/(reco_vec.Pt())*(reco_vec.pz()/reco_vec.Pt()));
-									//dzminus = ((vec.Z())-(*fvecVtxz)[k]);
-                                    //tr_d0= (- (tr_x-vtx_x)  track.py() + (tr_y-vtx_y)  track.px() ) / track.pt()
-									d0leaf = (*fVec_d0)[j];
-									//d0calc = ((-(reco_vec.X() - (*fvec_reco_Vtxx)[k])*reco_vec.Py()) + ((reco_vec.Y()-(*fvec_reco_Vtxy)[k])*reco_vec.Px()))/reco_vec.Pt();
-                                    d0calc = ((reco_vec.Y() - (*fvec_reco_Vtxy)[k])*reco_vec.Px() - (reco_vec.X() - (*fvec_reco_Vtxx)[k])*reco_vec.Py())/reco_vec.Pt();
-								}
-								*/
-							
-								/*
-                                if ((*nVec_HighPurity)[j] == 1)
-                                {
-                                    if (abs (reco_vec.Eta()) <= eta_cut && reco_vec.Pt() >= pt_cut)
-                                    {
-                                        dz_dzErr = ((*fVec_dz)[j])/((*fVec_dzErr)[j]);
-                                        d0_d0Err = ((*fVec_d0)[j])/((*fVec_d0Err)[j]);
-                                        ptErr_pt = ((*fVec_ptErr)[j]/(reco_vec.Pt()));
-
-                                        //fphi_eff = reco_vec.Phi()/gen_vec.Phi();
-                                        //feta_eff = reco_vec.Eta()/gen_vec.Eta();
-                                        //fpt_eff = reco_vec.Pt()/gen_vec.Pt();
-
-                                        pt_efficiency->Fill(fpt_eff);
-                                        eta_efficiency->Fill(feta_eff);
-                                        phi_efficiency->Fill(fphi_eff);
-                                        reco_phi_histo->Fill(reco_vec.Phi());
-                                        reco_pt_histo->Fill(reco_vec.Pt());
-                                        reco_eta_histo->Fill(reco_vec.Eta());
-                                        dz_sigmadz->Fill(dz_dzErr);
-                                        d0_sigmad0->Fill(d0_d0Err);
-                                        sigmapt_pt->Fill(ptErr_pt);
-                                        ++d_reco_trk;
-                                    }
-                                    ++nHigh_Purity;
-                                }
-								*/
-								dzcalc = ((reco_vec.Z())-(*fVec_reco_Vtxz)[k])-((((reco_vec.X())-(*fvec_reco_Vtxx)[k])*(reco_vec.px())+((reco_vec.Y())-(*fvec_reco_Vtxy)[k])*(reco_vec.py()))/(reco_vec.Pt())*(reco_vec.pz()/reco_vec.Pt()));
-								d0calc = ((-(reco_vec.X() - (*fvec_reco_Vtxx)[k])*reco_vec.Py()) + ((reco_vec.Y()-(*fvec_reco_Vtxy)[k])*reco_vec.Px()))/reco_vec.Pt();
-								dz_dzErr = (dzcalc)/((*fVec_dzErr)[j]);
-                                d0_d0Err = (d0calc)/((*fVec_d0Err)[j]);
-                                ptErr_pt = ((*fVec_ptErr)[j]/(reco_vec.Pt()));
-								pt_efficiency->Fill(fpt_eff);
-                                eta_efficiency->Fill(feta_eff);
-                                phi_efficiency->Fill(fphi_eff);
+                            
+							if((*fVec_reco_Vtxndof)[k] > 4)
+							{
+								++nreco_evt;
 								
-								if (dz_dzErr <= 3 && ptErr_pt <= 0.05)
+								//looping over tracks
+								for (int j = 0; j != ntrk_reco_total; ++j)
 								{
-								d0_sigmad0->Fill(d0_d0Err);
-								++ntrkd0;
-								}
-                                if (d0_d0Err <= 3 && ptErr_pt <= 0.05)
-								{
-								dz_sigmadz->Fill(dz_dzErr);
-								++ntrkdz;
-								}
-								if (d0_d0Err <= 3 && dz_dzErr <= 3)
-								{
-								sigmapt_pt->Fill(ptErr_pt);
-								++ntrkdpt;
-								}	
-                                
-                                
+									XYZTVector reco_vec = (*reco_tracks)[j];
 								
-								
-								//trackselection conditions to go here
-								if (reco_vec.Eta() <= 2.4 && reco_vec.Pt() >= 0.1 && d0_d0Err <= 3 && dz_dzErr <= 3 && ptErr_pt <= 0.05 && (*nVec_HighPurity)[j] == 1)
-								{
-									reco_phi_histo->Fill(reco_vec.Phi());
-									reco_pt_histo->Fill(reco_vec.Pt());
-									reco_eta_histo->Fill(reco_vec.Eta());
+									if((*nVec_HighPurity)[j] == 1)
+									{
+
+										dzcalc = ((reco_vec.Z())-(*fVec_reco_Vtxz)[k])-((((reco_vec.X())-(*fVec_reco_Vtxx)[k])*(reco_vec.px())+((reco_vec.Y())-(*fVec_reco_Vtxy)[k])*(reco_vec.py()))/(reco_vec.Pt())*(reco_vec.pz()/reco_vec.Pt()));
+										d0calc = ((-(reco_vec.X() - (*fVec_reco_Vtxx)[k])*reco_vec.Py()) + ((reco_vec.Y()-(*fVec_reco_Vtxy)[k])*reco_vec.Px()))/reco_vec.Pt();
+										dz_dzErr = (dzcalc)/((*fVec_dzErr)[j]);
+										d0_d0Err = (d0calc)/((*fVec_d0Err)[j]);
+										//dz_dzErr = ((*fVec_dz)[j])/((*fVec_dzErr)[j]);
+										//d0_d0Err = ((*fVec_d0)[j])/((*fVec_d0Err)[j]);
+										ptErr_pt = ((*fVec_ptErr)[j]/(reco_vec.Pt()));
+										pt_efficiency->Fill(fpt_eff);
+										eta_efficiency->Fill(feta_eff);
+										phi_efficiency->Fill(fphi_eff);
 									
-									++naccepttrk;
-									++d_reco_trk;
+										if (abs(dz_dzErr) <= 3 && abs(ptErr_pt) <= 0.05 && abs(reco_vec.Eta()) <= 2.4 && reco_vec.Pt() >= 0.5)
+										{
+										d0_sigmad0->Fill(d0_d0Err);
+										++ntrkd0;
+										}
+										if (abs(reco_vec.Eta()) <= 2.4 && reco_vec.Pt() >= 0.5 && abs(d0_d0Err) <= 3 && abs(ptErr_pt) <= 0.05 )
+										{
+										dz_sigmadz->Fill(dz_dzErr);
+										++ntrkdz;
+										}
+										if (abs(reco_vec.Eta()) <= 2.4 && reco_vec.Pt() >= 0.5 && abs(d0_d0Err) <= 3 && abs(dz_dzErr) <= 3 )
+										{
+										sigmapt_pt->Fill(ptErr_pt);
+										++ntrkdpt;
+										}	
+     
+										//trackselection conditions to go here
+										if (abs(reco_vec.Eta()) <= 2.4 && reco_vec.Pt() >= 0.5 && abs(d0_d0Err) <= 3 && abs(dz_dzErr) <= 3 && abs(ptErr_pt) <= 0.05 )
+										{
+											reco_phi_histo->Fill(reco_vec.Phi());
+											++naccepttrk;
+											++d_reco_trk;
+										}
+										if (abs(reco_vec.Eta()) <= 2.4 && abs(d0_d0Err) <= 3 && abs(dz_dzErr) <= 3 && abs(ptErr_pt) <= 0.05 )
+										{	
+											reco_pt_histo->Fill(reco_vec.Pt());
+											++ntrkptcut;
+										}
+										if (reco_vec.Pt() >= 0.5 && abs(d0_d0Err) <= 3 && abs(dz_dzErr) <= 3 && abs(ptErr_pt) <= 0.05 )
+										{
+											reco_eta_histo->Fill(reco_vec.Eta());
+											++ntrketa;
+										}
+									}
 								}
 
-
-                                /*if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
-                                {
-                                    pt_histo->Fill(vec.Pt());
-                                }
-
-                                if (vec.Pt() >= pt_cut)
-                                {
-                                    eta_histo->Fill(vec.Eta());
-                                }*/
+								reco_multiplicity->Fill(d_reco_trk);
+								ntrk_normalized += d_reco_trk;
+									
+							}
+							
 
 
-                            }
 
-                            reco_multiplicity->Fill(d_reco_trk);
-                            ntrk_normalized += d_reco_trk;
                         }
 
 
                     }
-
+					
                 }
-
+				
             }
 
         }
@@ -404,12 +375,14 @@ void Track_selection_2()
 	sigmapt_pt->Draw();
 	
 	reco_canvas->cd(4);
-    reco_pt_histo->Scale(norm_accepttrk);
+	double norm_ptcut = (1./ntrkptcut);
+    reco_pt_histo->Scale(norm_ptcut);
 	gPad->SetLogy();
 	reco_pt_histo->Draw();
 	
 	reco_canvas->cd(5);
-    reco_eta_histo->Scale(norm_accepttrk);
+	double norm_eta = (1./ntrketa);
+    reco_eta_histo->Scale(norm_eta);
 	gPad->SetLogy();
 	reco_eta_histo->Draw();
 	
@@ -513,11 +486,14 @@ void Track_selection_2()
     vector<int> *data_nVec_HighPurity = 0;
     data_tree->SetBranchAddress ("recoTrackshighPurity", &data_nVec_HighPurity);
 
-    vector<float> *data_fvec_reco_Vtxy = 0; //require initialisation to 0 to avoid crash
-    data_tree->SetBranchAddress("vtxy",&data_fvec_reco_Vtxy);
+    vector<float> *data_fVec_reco_Vtxy = 0; //require initialisation to 0 to avoid crash
+    data_tree->SetBranchAddress("vtxy",&data_fVec_reco_Vtxy);
 
-	vector<float> *data_fvec_reco_Vtxx = 0; //require initialisation to 0 to avoid crash
-    data_tree->SetBranchAddress("vtxx",&data_fvec_reco_Vtxx);
+	vector<float> *data_fVec_reco_Vtxx = 0; //require initialisation to 0 to avoid crash
+    data_tree->SetBranchAddress("vtxx",&data_fVec_reco_Vtxx);
+	
+	vector<int> *data_fVec_reco_Vtxndof = 0;
+    data_tree->SetBranchAddress("vtxndof",&data_fVec_reco_Vtxndof);
 
     double data_dzleaf = 0;
 	double data_dzcalc = 0;
@@ -536,6 +512,8 @@ void Track_selection_2()
 	int data_ntrkd0 = 0;
 	int data_ntrkdz = 0;
 	int data_ntrkdpt = 0;
+	int data_ntrkptcut= 0;
+	int data_ntrketa = 0;
     int data_ntrk_normalized = 0;
     int data_nHigh_Purity = 0;
     float data_dz_dzErr, data_d0_d0Err, data_ptErr_pt;
@@ -596,67 +574,70 @@ void Track_selection_2()
                             data_lumi_histo->Fill(data_nlumi_section);
 
                             data_d_reco_trk = 0;
-                            ++data_nreco_evt;
-
-
-                            //looping over tracks
-                            for (int j = 0; j != data_ntrk_reco_total; ++j)
-                            {
-                                XYZTVector data_reco_vec = (*data_reco_tracks)[j];
-
-								data_dzcalc = ((data_reco_vec.Z())-(*data_fVec_reco_Vtxz)[k])-((((data_reco_vec.X())-(*data_fvec_reco_Vtxx)[k])*(data_reco_vec.px())+((data_reco_vec.Y())-(*data_fvec_reco_Vtxy)[k])*(data_reco_vec.py()))/(data_reco_vec.Pt())*(data_reco_vec.pz()/data_reco_vec.Pt()));
-								data_d0calc = ((-(data_reco_vec.X() - (*data_fvec_reco_Vtxx)[k])*data_reco_vec.Py()) + ((data_reco_vec.Y()-(*data_fvec_reco_Vtxy)[k])*data_reco_vec.Px()))/data_reco_vec.Pt();
-								data_dz_dzErr = (data_dzcalc)/((*data_fVec_dzErr)[j]);
-                                data_d0_d0Err = (data_d0calc)/((*data_fVec_d0Err)[j]);
-                                data_ptErr_pt = ((*data_fVec_ptErr)[j]/(data_reco_vec.Pt()));
-
-								if (data_dz_dzErr <= 3 && data_ptErr_pt <= 0.05)
-								{
-								data_d0_sigmad0->Fill(data_d0_d0Err);
-								++data_ntrkd0;
-								}
-                                if (data_d0_d0Err <= 3 && data_ptErr_pt <= 0.05)
-								{
-								data_dz_sigmadz->Fill(data_dz_dzErr);
-								++data_ntrkdz;
-								}
-								if (data_d0_d0Err <= 3 && data_dz_dzErr <= 3)
-								{
-								data_sigmapt_pt->Fill(data_ptErr_pt);
-								++data_ntrkdpt;
-								}	
-								
+                            
+							if((*data_fVec_reco_Vtxndof)[k] > 4)
+							{
 							
-                                
-								
-								
-								//trackselection conditions to go here
-								if (data_reco_vec.Eta() <= 2.4 && data_reco_vec.Pt() >= 0.1 && data_d0_d0Err <= 3 && data_dz_dzErr <= 3 && data_ptErr_pt <= 0.05 && (*data_nVec_HighPurity)[j] == 1)
+								++data_nreco_evt;
+
+
+								//looping over tracks
+								for (int j = 0; j != data_ntrk_reco_total; ++j)
 								{
-									data_reco_phi_histo->Fill(data_reco_vec.Phi());
-									data_reco_pt_histo->Fill(data_reco_vec.Pt());
-									data_reco_eta_histo->Fill(data_reco_vec.Eta());
+
+									XYZTVector data_reco_vec = (*data_reco_tracks)[j];
+
+									if((*data_nVec_HighPurity)[j] == 1)
+									{
+										data_dzcalc = ((data_reco_vec.Z())-(*data_fVec_reco_Vtxz)[k])-((((data_reco_vec.X())-(*data_fVec_reco_Vtxx)[k])*(data_reco_vec.px())+((data_reco_vec.Y())-(*data_fVec_reco_Vtxy)[k])*(data_reco_vec.py()))/(data_reco_vec.Pt())*(data_reco_vec.pz()/data_reco_vec.Pt()));
+										data_d0calc = ((-(data_reco_vec.X() - (*data_fVec_reco_Vtxx)[k])*data_reco_vec.Py()) + ((data_reco_vec.Y()-(*data_fVec_reco_Vtxy)[k])*data_reco_vec.Px()))/data_reco_vec.Pt();
+										data_dz_dzErr = (data_dzcalc)/((*data_fVec_dzErr)[j]);
+										data_d0_d0Err = (data_d0calc)/((*data_fVec_d0Err)[j]);
+										//data_dz_dzErr = ((*data_fVec_dz)[j])/((*data_fVec_dzErr)[j]);
+										//data_d0_d0Err = ((*data_fVec_d0)[j])/((*data_fVec_d0Err)[j]);
+										data_ptErr_pt = ((*data_fVec_ptErr)[j]/(data_reco_vec.Pt()));
+
+										if (abs(data_reco_vec.Eta()) <= 2.4 && data_reco_vec.Pt() >= 0.5 && abs(data_dz_dzErr) <= 3 && abs(data_ptErr_pt) <= 0.05)
+										{
+										data_d0_sigmad0->Fill(data_d0_d0Err);
+										++data_ntrkd0;
+										}
+										if (abs(data_reco_vec.Eta()) <= 2.4 && data_reco_vec.Pt() >= 0.5 && abs(data_d0_d0Err) <= 3 && abs(data_ptErr_pt) <= 0.05)
+										{
+										data_dz_sigmadz->Fill(data_dz_dzErr);
+										++data_ntrkdz;
+										}
+										if (abs(data_reco_vec.Eta()) <= 2.4 && data_reco_vec.Pt() >= 0.5 && abs(data_d0_d0Err) <= 3 && abs(data_dz_dzErr) <= 3 )
+										{
+										data_sigmapt_pt->Fill(data_ptErr_pt);
+										++data_ntrkdpt;
+										}	
+
+										//trackselection conditions to go here
+										if (abs(data_reco_vec.Eta()) <= 2.4 && data_reco_vec.Pt() >= 0.5 && abs(data_d0_d0Err) <= 3 && abs(data_dz_dzErr) <= 3 && abs(data_ptErr_pt) <= 0.05)
+										{
+											data_reco_phi_histo->Fill(data_reco_vec.Phi());
+											++data_naccepttrk;
+											++data_d_reco_trk;
+										}
 									
-									++data_naccepttrk;
-									++data_d_reco_trk;
+										if (abs(data_reco_vec.Eta()) <= 2.4 && abs(data_d0_d0Err) <= 3 && abs(data_dz_dzErr) <= 3 && abs(data_ptErr_pt) <= 0.05)
+										{
+											data_reco_pt_histo->Fill(data_reco_vec.Pt());
+											++data_ntrkptcut;
+										}										
+									
+										if (data_reco_vec.Pt() >= 0.5 && abs(data_d0_d0Err) <= 3 && abs(data_dz_dzErr) <= 3 && abs(data_ptErr_pt) <= 0.05)
+										{
+											data_reco_eta_histo->Fill(data_reco_vec.Eta());
+											++data_ntrketa;
+										}										
+									}
 								}
 
-
-                                /*if (abs (vec.Eta()) <= eta_cut && vec.Pt() >= pt_cut)
-                                {
-                                    pt_histo->Fill(vec.Pt());
-                                }
-
-                                if (vec.Pt() >= pt_cut)
-                                {
-                                    eta_histo->Fill(vec.Eta());
-                                }*/
-
-
-                            }
-
-                            data_reco_multiplicity->Fill(data_d_reco_trk);
-                            data_ntrk_normalized += data_d_reco_trk;
+								data_reco_multiplicity->Fill(data_d_reco_trk);
+								data_ntrk_normalized += data_d_reco_trk;
+							}
                         }
 
 
@@ -686,7 +667,7 @@ void Track_selection_2()
 
 	double data_norm_evt = (1./data_nreco_evt);
 	double data_norm_accepttrk = (1./data_naccepttrk);
-	cout << "data_normevt is " << data_norm_evt << "data_nreco_evt" << data_nreco_evt<<endl;
+	cout << "data_nreco_evt" << data_nreco_evt << "data_ntrkdz    " << data_ntrkdz <<  "data_ntrkd0   " << data_ntrkd0 << "data_ntrkdpt   " << data_ntrkdpt << "data_naccepttrk   " << data_naccepttrk << "data_ntrketa   " << data_ntrketa << "data_ntrkptcut   " << data_ntrkptcut << endl;
 	
 	
     data_reco_canvas->Divide(3,2);
@@ -725,12 +706,14 @@ void Track_selection_2()
 	data_sigmapt_pt->Draw();
 	
 	data_reco_canvas->cd(4);
-    data_reco_pt_histo->Scale(data_norm_accepttrk);
+	double data_norm_ptcut = (1./data_ntrkptcut);
+    data_reco_pt_histo->Scale(data_norm_ptcut);
 	gPad->SetLogy();
 	data_reco_pt_histo->Draw();
 	
 	data_reco_canvas->cd(5);
-    data_reco_eta_histo->Scale(data_norm_accepttrk);
+	double data_norm_eta = (1./data_ntrketa);	
+    data_reco_eta_histo->Scale(data_norm_eta);
 	gPad->SetLogy();
 	data_reco_eta_histo->Draw();
 	
