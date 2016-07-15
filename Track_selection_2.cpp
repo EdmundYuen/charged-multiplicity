@@ -28,12 +28,12 @@ void Track_selection_2()
     TH1F *reco_phi_histo = new TH1F ("reco_phi", "Normalized_reco_Phi", 62, -3.14, 3.14);
     TH1F *lumi_histo = new TH1F ("lumi_section", "lumi_section", 160, 80, 230);
     TH1F *reco_multiplicity = new TH1F ("reco_multiplicity", "Normalized_reco_Multiplicity", 50, 0, 50);
-    TH1F *dz_sigmadz = new TH1F ("dz_sigmadz", "Normalized_dz_sigmadz", 100, 0, 10);
-    TH1F *d0_sigmad0 = new TH1F ("d0_sigmad0", "Normalized_d0_sigmad0", 100, 0, 10);
-    TH1F *sigmapt_pt = new TH1F ("sigmapt_pt", "Normalized_sigmapt_pt", 80, 0, 0.8);
-	TH1F *norm_dz_sigmadz = new TH1F ("dz_sigmadz", "Normalized_dz_sigmadz", 100, 0, 10);
-    TH1F *norm_d0_sigmad0 = new TH1F ("d0_sigmad0", "Normalized_d0_sigmad0", 100, 0, 10);
-    TH1F *norm_sigmapt_pt = new TH1F ("sigmapt_pt", "Normalized_sigmapt_pt", 80, 0, 0.8);
+    TH1F *dz_sigmadz = new TH1F ("dz_sigmadz", "Normalized_dz_sigmadz", 200, -20, 20);
+    TH1F *d0_sigmad0 = new TH1F ("d0_sigmad0", "Normalized_d0_sigmad0", 200, -20, 20);
+    TH1F *sigmapt_pt = new TH1F ("sigmapt_pt", "Normalized_sigmapt_pt", 20, 0, 0.2);
+	TH1F *norm_dz_sigmadz = new TH1F ("dz_sigmadz", "Normalized_dz_sigmadz", 200, -20, 20);
+    TH1F *norm_d0_sigmad0 = new TH1F ("d0_sigmad0", "Normalized_d0_sigmad0", 200, -20, 20);
+    TH1F *norm_sigmapt_pt = new TH1F ("sigmapt_pt", "Normalized_sigmapt_pt", 20, 0, 0.2);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
 	
 	//---------------------Histograms for data Tracks-------------------------------------------
@@ -45,15 +45,15 @@ void Track_selection_2()
     TH1F *data_reco_phi_histo = new TH1F ("data_reco_phi", "data_Normalized_reco_Phi", 62, -3.14, 3.14);
     TH1F *data_lumi_histo = new TH1F ("data_lumi_section", "data_lumi_section", 160, 80, 230);
     TH1F *data_reco_multiplicity = new TH1F ("data_reco_multiplicity", "data_Normalized_reco_Multiplicity", 50, 0, 50);
-    TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data_Normalized_dz_sigmadz", 100, 0, 10);
-    TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data_Normalized_d0_sigmad0", 100, 0, 10);
-    TH1F *data_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data_Normalized_sigmapt_pt", 80, 0, 0.8);
-	TH1F *data_norm_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data_Normalized_dz_sigmadz", 100, 0, 10);
-    TH1F *data_norm_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data_Normalized_d0_sigmad0", 100, 0, 10);
-    TH1F *data_norm_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data_Normalized_sigmapt_pt", 80, 0, 0.8);
+    TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data_Normalized_dz_sigmadz", 200, -20, 20);
+    TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data_Normalized_d0_sigmad0", 200, -20, 20);
+    TH1F *data_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data_Normalized_sigmapt_pt", 20, 0, 0.2);
+	TH1F *data_norm_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data_Normalized_dz_sigmadz", 200, -20, 20);
+    TH1F *data_norm_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data_Normalized_d0_sigmad0", 200, -20, 20);
+    TH1F *data_norm_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data_Normalized_sigmapt_pt", 20, 0, 0.2);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
 
-
+	Double_t norm = 1;
 	
 	
 	
@@ -342,8 +342,9 @@ void Track_selection_2()
     reco_canvas->Divide(3,2);
 	
     reco_canvas->cd(1);
-	double norm_dz = (1./ntrkdz);
-	dz_sigmadz->Scale(norm_dz);
+	//double norm_dz = (1./ntrkdz);
+	//dz_sigmadz->Scale(norm_dz);
+	dz_sigmadz->Scale(norm/dz_sigmadz->Integral(), "width");
 	gPad->SetLogy();
 	dz_sigmadz->Draw();
 	
@@ -355,8 +356,9 @@ void Track_selection_2()
     //gen_pt_histo->Draw();
 
     reco_canvas->cd(2);
-	double norm_d0 = (1./ntrkd0);
-	d0_sigmad0->Scale(norm_d0);
+	//double norm_d0 = (1./ntrkd0);
+	//d0_sigmad0->Scale(norm_d0);
+	d0_sigmad0->Scale(norm/d0_sigmad0->Integral(), "width");
 	gPad->SetLogy();
 	d0_sigmad0->Draw();
 	
@@ -369,29 +371,32 @@ void Track_selection_2()
     //gen_eta_histo->Draw();
 
     reco_canvas->cd(3);
-    double norm_dpt = (1./ntrkdpt);
-	sigmapt_pt->Scale(norm_dpt);
+    //double norm_dpt = (1./ntrkdpt);
+	//sigmapt_pt->Scale(norm_dpt);
+	sigmapt_pt->Scale(norm/sigmapt_pt->Integral(), "width");
 	gPad->SetLogy();
 	sigmapt_pt->Draw();
 	
 	reco_canvas->cd(4);
-	double norm_ptcut = (1./ntrkptcut);
-    reco_pt_histo->Scale(norm_ptcut);
+	//double norm_ptcut = (1./ntrkptcut);
+    //reco_pt_histo->Scale(norm_ptcut);
+	reco_pt_histo->Scale(norm/reco_pt_histo->Integral(), "width");
 	gPad->SetLogy();
 	reco_pt_histo->Draw();
 	
 	reco_canvas->cd(5);
-	double norm_eta = (1./ntrketa);
-    reco_eta_histo->Scale(norm_eta);
-	gPad->SetLogy();
+	//double norm_eta = (1./ntrketa);
+    //reco_eta_histo->Scale(norm_eta);
+	reco_eta_histo->Scale(norm/reco_eta_histo->Integral(), "width");
 	reco_eta_histo->Draw();
 	
 	reco_canvas->cd(6);
-    reco_phi_histo->Scale(norm_accepttrk);
-	gPad->SetLogy();
+    //reco_phi_histo->Scale(norm_accepttrk);
+	reco_phi_histo->Scale(norm/reco_phi_histo->Integral(), "width");
 	reco_phi_histo->Draw();
 	
-	reco_multiplicity->Scale(norm_evt);
+	reco_multiplicity->Scale(norm/reco_multiplicity->Integral(), "width");
+	//reco_multiplicity->Scale(norm_evt);
 	
 	
 	//gPad->SetLogy();
@@ -668,13 +673,13 @@ void Track_selection_2()
 	double data_norm_evt = (1./data_nreco_evt);
 	double data_norm_accepttrk = (1./data_naccepttrk);
 	cout << "data_nreco_evt" << data_nreco_evt << "data_ntrkdz    " << data_ntrkdz <<  "data_ntrkd0   " << data_ntrkd0 << "data_ntrkdpt   " << data_ntrkdpt << "data_naccepttrk   " << data_naccepttrk << "data_ntrketa   " << data_ntrketa << "data_ntrkptcut   " << data_ntrkptcut << endl;
-	
-	
+
     data_reco_canvas->Divide(3,2);
 	
     data_reco_canvas->cd(1);
-	double data_norm_dz = (1./data_ntrkdz);
-	data_dz_sigmadz->Scale(data_norm_dz);
+	//double data_norm_dz = (1./data_ntrkdz);
+	//data_dz_sigmadz->Scale(data_norm_dz);
+	data_dz_sigmadz->Scale(norm/data_dz_sigmadz->Integral(), "width");
 	gPad->SetLogy();
 	data_dz_sigmadz->Draw();
 	
@@ -686,8 +691,9 @@ void Track_selection_2()
     //gen_pt_histo->Draw();
 
     data_reco_canvas->cd(2);
-	double data_norm_d0 = (1./data_ntrkd0);
-	data_d0_sigmad0->Scale(data_norm_d0);
+	//double data_norm_d0 = (1./data_ntrkd0);
+	//data_d0_sigmad0->Scale(data_norm_d0);
+	data_d0_sigmad0->Scale(norm/data_d0_sigmad0->Integral(), "width");
 	gPad->SetLogy();
 	data_d0_sigmad0->Draw();
 	
@@ -700,29 +706,32 @@ void Track_selection_2()
     //gen_eta_histo->Draw();
 
     data_reco_canvas->cd(3);
-	double data_norm_dpt = (1./data_ntrkdpt);
-    data_sigmapt_pt->Scale(data_norm_dpt);
+	//double data_norm_dpt = (1./data_ntrkdpt);
+    //data_sigmapt_pt->Scale(data_norm_dpt);
+	data_sigmapt_pt->Scale(norm/data_sigmapt_pt->Integral(), "width");
 	gPad->SetLogy();
 	data_sigmapt_pt->Draw();
 	
 	data_reco_canvas->cd(4);
-	double data_norm_ptcut = (1./data_ntrkptcut);
-    data_reco_pt_histo->Scale(data_norm_ptcut);
+	//double data_norm_ptcut = (1./data_ntrkptcut);
+    //data_reco_pt_histo->Scale(data_norm_ptcut);
+	data_reco_pt_histo->Scale(norm/data_reco_pt_histo->Integral(), "width");
 	gPad->SetLogy();
 	data_reco_pt_histo->Draw();
 	
 	data_reco_canvas->cd(5);
-	double data_norm_eta = (1./data_ntrketa);	
-    data_reco_eta_histo->Scale(data_norm_eta);
-	gPad->SetLogy();
+	//double data_norm_eta = (1./data_ntrketa);	
+    //data_reco_eta_histo->Scale(data_norm_eta);
+	data_reco_eta_histo->Scale(norm/data_reco_eta_histo->Integral(), "width");
 	data_reco_eta_histo->Draw();
 	
 	data_reco_canvas->cd(6);
-    data_reco_phi_histo->Scale(data_norm_accepttrk);
-	gPad->SetLogy();
+    //data_reco_phi_histo->Scale(data_norm_accepttrk);
+	data_reco_phi_histo->Scale(norm/data_reco_phi_histo->Integral(), "width");
 	data_reco_phi_histo->Draw();
 	
-	data_reco_multiplicity->Scale(data_norm_evt);
+	data_reco_multiplicity->Scale(norm/data_reco_multiplicity->Integral(), "width");
+	//data_reco_multiplicity->Scale(data_norm_evt);
 	
 	//gPad->SetLogy();
     //reco_phi_histo->Scale(1/n_reco_evt);
