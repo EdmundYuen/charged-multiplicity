@@ -11,6 +11,11 @@
 #include "TMath.h"
 #include "Math/Vector3D.h"
 #include "Math/Vector4D.h"
+#include "RooUnfold.h"
+#include "RooUnfoldResponse.h"
+#include "RooUnfoldBayes.h"
+#include "RooUnfoldSvd.h"
+#include "RooUnfoldTUnfold.h"
 
 using namespace std;
 using namespace ROOT::Math;
@@ -36,6 +41,8 @@ void Track_selection_2()
     TH1F *norm_sigmapt_pt = new TH1F ("sigmapt_pt", "Normalized_sigmapt_pt", 20, 0, 0.2);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
 	
+	TH1F *MCpileup = new TH1F ("MCpileup", "MCpileup", 20, 0, 20);
+	
 	//---------------------Histograms for data Tracks-------------------------------------------
 
     TCanvas *data_reco_canvas = new TCanvas;
@@ -52,10 +59,14 @@ void Track_selection_2()
     TH1F *data_norm_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data_Normalized_d0_sigmad0", 200, -20, 20);
     TH1F *data_norm_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data_Normalized_sigmapt_pt", 20, 0, 0.2);
     //TH1F *normalized_multiplicity_histo = new TH1F ("normalized_multiplicity", "normalized_multiplicity", 200, 0, 200);
-
+	
+	TH1F *data_pileup = new TH1F ("data_pileup", "data_pileup", 20, 0, 20);
+	
 	Double_t norm = 1;
 	
+	//RooUnfold
 	
+	RooUnfoldResponse response(reco_multiplicity, data_reco_multiplicity);
 	
 	{   
    //gROOT->ProcessLine(".L Loader.C+");
@@ -112,6 +123,15 @@ void Track_selection_2()
 	
 	vector<int> *fVec_reco_Vtxndof = 0;
     tree->SetBranchAddress("vtxndof",&fVec_reco_Vtxndof);
+	
+	vector<int> *fVec_reco_Vtxex = 0;
+    tree->SetBranchAddress("vtxxErr",&fVec_reco_Vtxex);
+	
+	vector<int> *fVec_reco_Vtxey = 0;
+    tree->SetBranchAddress("vtxyErr",&fVec_reco_Vtxey);
+	
+	vector<int> *fVec_reco_Vtxez = 0;
+    tree->SetBranchAddress("vtxzErr",&fVec_reco_Vtxez);
 
     double dzleaf = 0;
 	double dzcalc = 0;
@@ -134,6 +154,7 @@ void Track_selection_2()
 	int naccepttrk = 0;
     int ntrk_normalized = 0;
     int nHigh_Purity = 0;
+	int npileup = 0;
     float dz_dzErr, d0_d0Err, ptErr_pt;
 
 
@@ -219,7 +240,8 @@ void Track_selection_2()
 */
 
 //---------------------Loops for reco tracks-------------------------------------------
-
+				npileup++;
+				
                 if (fVec_reco_Vtxz_size == vtxz_number)
                 {
                     //cout << "number of vertex for event " << i << " is " << fVec_reco_Vtxz_size << endl;
@@ -252,10 +274,15 @@ void Track_selection_2()
 									if((*nVec_HighPurity)[j] == 1)
 									{
 
-										dzcalc = ((reco_vec.Z())-(*fVec_reco_Vtxz)[k])-((((reco_vec.X())-(*fVec_reco_Vtxx)[k])*(reco_vec.px())+((reco_vec.Y())-(*fVec_reco_Vtxy)[k])*(reco_vec.py()))/(reco_vec.Pt())*(reco_vec.pz()/reco_vec.Pt()));
-										d0calc = ((-(reco_vec.X() - (*fVec_reco_Vtxx)[k])*reco_vec.Py()) + ((reco_vec.Y()-(*fVec_reco_Vtxy)[k])*reco_vec.Px()))/reco_vec.Pt();
-										dz_dzErr = (dzcalc)/((*fVec_dzErr)[j]);
-										d0_d0Err = (d0calc)/((*fVec_d0Err)[j]);
+										//dzcalc = ((reco_vec.Z())-(*fVec_reco_Vtxz)[k])-((((reco_vec.X())-(*fVec_reco_Vtxx)[k])*(reco_vec.px())+((reco_vec.Y())-(*fVec_reco_Vtxy)[k])*(reco_vec.py()))/(reco_vec.Pt())*(reco_vec.pz()/reco_vec.Pt()));
+										//d0calc = ((-(reco_vec.X() - (*fVec_reco_Vtxx)[k])*reco_vec.Py()) + ((reco_vec.Y()-(*fVec_reco_Vtxy)[k])*reco_vec.Px()))/reco_vec.Pt();
+										
+										//fabs(tr.vtxdxy.at(vtxnum) / sqrt(pow(tr.ed0, 2) + pow(goodVtx->ex, 2) + pow(goodVtx->ey, 2))) > IPsig
+										//fabs(tr.vtxdz.at(vtxnum) / sqrt(pow(tr.edz, 2) + pow(goodVtx->ez, 2))) > IPsig
+										dz_dzErr = (((*fVec_dz)[j])/sqrt(pow(((*fVec_dzErr)[j]),2)+pow((*fVec_reco_Vtxez)[k],2)));
+										d0_d0Err = (((*fVec_d0)[j])/sqrt(pow(((*fVec_d0Err)[j]),2)+pow((*fVec_reco_Vtxex)[k],2)+pow((*fVec_reco_Vtxey)[k],2)));
+										//dz_dzErr = (dzcalc)/((*fVec_dzErr)[j]);
+										//d0_d0Err = (d0calc)/((*fVec_d0Err)[j]);
 										//dz_dzErr = ((*fVec_dz)[j])/((*fVec_dzErr)[j]);
 										//d0_d0Err = ((*fVec_d0)[j])/((*fVec_d0Err)[j]);
 										ptErr_pt = ((*fVec_ptErr)[j]/(reco_vec.Pt()));
@@ -291,7 +318,8 @@ void Track_selection_2()
 											reco_pt_histo->Fill(reco_vec.Pt());
 											++ntrkptcut;
 										}
-										if (reco_vec.Pt() >= 0.5 && abs(d0_d0Err) <= 3 && abs(dz_dzErr) <= 3 && abs(ptErr_pt) <= 0.05 )
+										//if (reco_vec.Pt() >= 0.5 && abs(d0_d0Err) <= 3 && abs(dz_dzErr) <= 3 && abs(ptErr_pt) <= 0.05 )
+										if (reco_vec.Pt() >= 0.5 && abs(ptErr_pt) <= 0.05 )											
 										{
 											reco_eta_histo->Fill(reco_vec.Eta());
 											++ntrketa;
@@ -315,7 +343,8 @@ void Track_selection_2()
                 }
 				
             }
-
+			
+			MCpileup->Fill(fVec_reco_Vtxz_size);
         }
 
     }
@@ -521,6 +550,7 @@ void Track_selection_2()
 	int data_ntrketa = 0;
     int data_ntrk_normalized = 0;
     int data_nHigh_Purity = 0;
+	int data_npileup = 0;
     float data_dz_dzErr, data_d0_d0Err, data_ptErr_pt;
 
 
@@ -560,7 +590,7 @@ void Track_selection_2()
                 //vtxz_plot->Fill(fvecVtxz_size);
 
 //---------------------Loops for reco tracks-------------------------------------------
-
+				data_npileup++;
                 if (data_fVec_reco_Vtxz_size == data_vtxz_number)
                 {
                     //cout << "number of vertex for event " << i << " is " << fVec_reco_Vtxz_size << endl;
@@ -651,7 +681,7 @@ void Track_selection_2()
                 }
 
             }
-
+			data_pileup->Fill(data_fVec_reco_Vtxz_size);
         }
 
     }
@@ -780,7 +810,7 @@ void Track_selection_2()
 	
 	
 	//Writing output
-	TFile f("Track_selection_2.root", "recreate");
+	TFile f("Track_selection_2_nocut.root", "recreate");
 	d0_sigmad0->Write();
 	dz_sigmadz->Write();
 	sigmapt_pt->Write();
@@ -788,6 +818,7 @@ void Track_selection_2()
 	reco_eta_histo->Write();
 	reco_phi_histo->Write();
 	reco_multiplicity->Write();
+	MCpileup->Write();
 	
 	data_d0_sigmad0->Write();
 	data_dz_sigmadz->Write();
@@ -796,4 +827,6 @@ void Track_selection_2()
 	data_reco_eta_histo->Write();
 	data_reco_phi_histo->Write();
 	data_reco_multiplicity->Write();
+	data_pileup->Write();
+	
 }
