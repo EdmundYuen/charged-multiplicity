@@ -3,6 +3,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <algorithm>
+#include "math.h"
 #include <vector>
 #include <iostream>
 #include "TLorentzVector.h"
@@ -51,15 +52,12 @@ void track_selection_redo()
 
     vector<float> *fvecdata_vtxx = 0;
     datatree->SetBranchAddress("vtxx", &fvecdata_vtxx);
-    int ndata_numberofvtxx = fvecdata_vtxx->size();
 
     vector<float> *fvecdata_vtxy = 0;
     datatree->SetBranchAddress("vtxy", &fvecdata_vtxy);
-    int ndata_numberofvtxy = fvecdata_vtxy->size();
 
     vector<float> *fvecdata_vtxz = 0;
     datatree->SetBranchAddress("vtxz", &fvecdata_vtxz);
-    int ndata_numberofvtxz = fvecdata_vtxz->size();
 
     vector<float> *fvecdata_vtxxBS = 0;
     datatree->SetBranchAddress("vtxxBS", &fvecdata_vtxxBS);
@@ -91,6 +89,15 @@ void track_selection_redo()
     vector<float> *fvecdata_pterr = 0;
     datatree->SetBranchAddress("recoTracksptErr", &fvecdata_pterr);
 
+    vector<float> *fvecdata_vtxxerr = 0;
+    datatree->SetBranchAddress("vtxxErr", &fvecdata_vtxxerr);
+
+    vector<float> *fvecdata_vtxyerr = 0;
+    datatree->SetBranchAddress("vtxyErr", &fvecdata_vtxyerr);
+
+    vector<float> *fvecdata_vtxzerr = 0;
+    datatree->SetBranchAddress("vtxzErr", &fvecdata_vtxzerr);
+
 
     //==============================================Histograms==============================================================
 
@@ -98,7 +105,14 @@ void track_selection_redo()
     TH1F *data_eta_histo = new TH1F("data eta", "Normalised data #eta", 50, -2.5, 2.5);
     TH1F *data_phi_histo = new TH1F ("data phi", "Normalized_data #phi", 60, -3, 3);
     TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
+    TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
+    TH1F *data_dz_sigmadzcalcb4cut = new TH1F ("data_dz_sigmadzcalcb4cut", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
+    //TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 150, 0, 0.5);
     TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 160, -20, 20);
+    TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
+    TH1F *data_d0_sigmad0calcrun1 = new TH1F ("data_d0_sigmad0calcrun1", "data d_{0}/#sigma_{xy} calc run 1", 160, -20, 20);
+    //TH1F *data_d0_sigmad0calcb4cut = new TH1F ("data_d0_sigmad0calcb4cut", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
+    //TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 150, 0, 0.5);
     TH1F *data_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data #sigma_{p_{T}}/p_{T}", 20, 0, 0.2);
 
     //==============================================Variables==============================================================
@@ -108,7 +122,15 @@ void track_selection_redo()
     float fdata_trketa = 0;
     float fdata_trkd0 = 0;
     float fdata_trkpt = 0;
-    float fdata_dz_sigmadz, fdata_d0_sigmad0, fdata_sigmapt_pt;
+    float fdata_trkdz = 0;
+    float fdata_trkdpt = 0;
+    float fdata_dz_sigmadz, fdata_d0_sigmad0, fdata_sigmapt_pt, fdata_dz_sigmadzcalc, fdata_d0_sigmad0calc, fdata_sigmad0, fdata_d0, fdata_d0_sigmad0run1, fdata_trkdx, fdata_trkdy;
+    float fdata_wx, fdata_wy;
+    float fdata_sqvtxx = 0;
+    float fdata_sqvtxy = 0;
+    float fdata_numberoftrkdx = 0;
+    float fdata_numberoftrkdy = 0;
+    int ndata_numberofvtxx, ndata_numberofvtxy, ndata_numberofvtxz;
     //float fdata_dz_sigmadz = 0;
     //float fdata_d0_sigmad0 = 0;
     //float fdata_sigmapt_pt = 0;
@@ -129,6 +151,23 @@ void track_selection_redo()
                 ndata_totaltrk = data_tracks->size();
                 ++fdata_evt;
 
+                ndata_numberofvtxx = fvecdata_vtxx->size();
+                ndata_numberofvtxy = fvecdata_vtxy->size();
+                ndata_numberofvtxz = fvecdata_vtxz->size();
+
+                for(int vtxx = 0; vtxx != ndata_numberofvtxx; ++vtxx)
+                {
+                    fdata_sqvtxx += pow((*fvecdata_vtxx)[vtxx] , 2);
+                }
+
+                for(int vtxy = 0; vtxy !=ndata_numberofvtxy; ++vtxy)
+                {
+                    fdata_sqvtxy += pow((*fvecdata_vtxy)[vtxy] , 2);
+                }
+
+                fdata_wx = sqrt((fdata_sqvtxx) / (ndata_numberofvtxx));
+                fdata_wy = sqrt((fdata_sqvtxy) / (ndata_numberofvtxy));
+
                 //looping through tracks
                 for (int t = 0; t != ndata_totaltrk; ++t)
                 {
@@ -137,31 +176,74 @@ void track_selection_redo()
 
                     fdata_dz_sigmadz = ((*fvecdata_dz)[t])/((*fvecdata_dzerr)[t]);
                     fdata_d0_sigmad0 = ((*fvecdata_d0)[t])/((*fvecdata_d0err)[t]);
+                    //fdata_dz_sigmadz = ((*fvecdata_dz)[t])/((*fvecdata_vtxzerr)[t]);
+                    //fdata_d0_sigmad0 = ((*fvecdata_d0)[t])/sqrt((pow((*fvecdata_vtxxerr)[t],2)+pow((*fvecdata_vtxyerr)[t],2)));
                     fdata_sigmapt_pt = (((*fvecdata_pterr)[t])/(data_vec.Pt()));
+                    fdata_dz_sigmadzcalc = (((*fvecdata_dz)[t])/sqrt(pow(((*fvecdata_dzerr)[t]),2)+pow((*fvecdata_vtxzerr)[t],2)));
+                    //fdata_d0_sigmad0calc = (((*fvecdata_d0)[t])/sqrt(pow(((*fvecdata_d0err)[t]),2)+pow((*fvecdata_vtxxerr)[t],2)+pow((*fvecdata_vtxyerr)[t],2)));
+                    //fdata_dz_sigmadzcalc = (sqrt(pow(((*fvecdata_dzerr)[t]),2)+pow((*fvecdata_vtxzerr)[t],2)));
+                    //fdata_d0_sigmad0calc = (sqrt(pow(((*fvecdata_d0err)[t]),2)+pow((*fvecdata_vtxxerr)[t],2)+pow((*fvecdata_vtxyerr)[t],2)));
 
-                    if (abs(data_vec.Eta()) <= eta_cut)
+                    /*if (data_vec.Pt() >= pt_cut && abs(data_vec.Eta()) <= eta_cut)
                     {
-                        data_pt_histo->Fill(data_vec.Pt());
-                        ++fdata_trkpt;
-                    }
+                            data_phi_histo->Fill(data_vec.Phi());
+                            data_dz_sigmadz->Fill(fdata_dz_sigmadz);
+                            data_dz_sigmadzcalcb4cut->Fill(fdata_dz_sigmadzcalc);
+                            data_d0_sigmad0->Fill(fdata_d0_sigmad0);
+                            data_d0_sigmad0calcb4cut->Fill(fdata_d0_sigmad0calc);
+                            ++fdata_trkd0b4cut;
+                            data_sigmapt_pt->Fill(fdata_sigmapt_pt);
+                            //++fdata_trk;
+                    }*/
 
-                    if (data_vec.Pt() >= pt_cut)
+                    if ((*nvecdata_vtxndof)[t] > 4)
                     {
-                        data_eta_histo->Fill(data_vec.Eta());
-                        ++fdata_trketa;
+                        if ((*nvecdata_highpurity)[t] == 1)
+                        {
+                            if (abs(data_vec.Eta()) <= eta_cut)
+                            {
+                                data_pt_histo->Fill(data_vec.Pt());
+                                ++fdata_trkpt;
+                            }
 
+                            if (data_vec.Pt() >= pt_cut)
+                            {
+                                data_eta_histo->Fill(data_vec.Eta());
+                                ++fdata_trketa;
+                            }
+
+                            if (data_vec.Pt() >= pt_cut && abs(data_vec.Eta()) <= eta_cut)
+                            {
+                                data_phi_histo->Fill(data_vec.Phi());
+
+                                if (fabs(fdata_d0_sigmad0calc) < d0_d0Err_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
+                                {
+                                    data_dz_sigmadz->Fill(fdata_dz_sigmadz);
+                                    data_dz_sigmadzcalc->Fill(fdata_dz_sigmadzcalc);
+                                    ++fdata_trkdz;
+                                }
+
+                                if (fabs(fdata_dz_sigmadz) < dz_dzErr_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
+                                {
+                                    data_d0_sigmad0->Fill(fdata_d0_sigmad0);
+                                    data_d0_sigmad0calc->Fill(fdata_d0_sigmad0calc);
+                                    fdata_sigmad0 = sqrt(pow(((*fvecdata_d0err)[t]), 2) + (fdata_wx)*(fdata_wy)); //check the formula again
+                                    //fdata_sigmad0 = sqrt(pow((*fvecdata_d0)[t], 2) + 0.01429*0.01727);
+                                    fdata_d0 = fmin(0.2, (4.0*fdata_sigmad0));
+                                    fdata_d0_sigmad0run1 = (fdata_d0)/(fdata_sigmad0);
+                                    data_d0_sigmad0calcrun1->Fill(fdata_d0_sigmad0run1);
+                                    ++fdata_trkd0;
+                                }
+
+                                if (fabs(fdata_dz_sigmadz) < dz_dzErr_cut && fabs(fdata_d0_sigmad0calc) < d0_d0Err_cut)
+                                {
+                                    data_sigmapt_pt->Fill(fdata_sigmapt_pt);
+                                    ++fdata_trkdpt;
+                                }
+
+                            }
+                        }
                     }
-
-                    if (data_vec.Pt() >= pt_cut && abs(data_vec.Eta()) <= eta_cut)
-                    {
-                        data_phi_histo->Fill(data_vec.Phi());
-                        data_d0_sigmad0->Fill(fdata_d0_sigmad0);
-                        data_dz_sigmadz->Fill(fdata_dz_sigmadz);
-                        ++fdata_trkd0;
-                        data_sigmapt_pt->Fill(fdata_sigmapt_pt);
-                        ++fdata_trk;
-                    }
-
                 }
             }
         }
@@ -186,15 +268,19 @@ void track_selection_redo()
 
     //canvas->cd(1);
     gPad->SetLogy();
-    data_pt_histo->Scale(1/fdata_evt);
+    data_pt_histo->Scale(1/fdata_trkpt);
     data_pt_histo->Draw();
     data_pt_histo->Write();
 
-    data_dz_sigmadz->Scale(1/fdata_trkd0);
-    data_dz_sigmadz->Draw();
-    data_dz_sigmadz->Write();
+    data_dz_sigmadz->Scale(1/fdata_trkdz);
     data_dz_sigmadz->SetMinimum(1E-5);
     data_dz_sigmadz->SetMaximum(1E-1);
+    data_dz_sigmadz->Draw();
+    data_dz_sigmadz->Write();
+
+    data_dz_sigmadzcalc->Scale(1/fdata_trkdz);
+    data_dz_sigmadzcalc->Draw();
+    data_dz_sigmadzcalc->Write();
 
     data_d0_sigmad0->SetMinimum(1E-5);
     data_d0_sigmad0->SetMaximum(0.1);
@@ -203,7 +289,14 @@ void track_selection_redo()
     data_d0_sigmad0->Draw();
     data_d0_sigmad0->Write();
 
-    data_sigmapt_pt->Scale(1/fdata_trkd0);
+    data_d0_sigmad0calc->Scale(1/fdata_trkd0);
+    data_d0_sigmad0calc->Draw();
+    data_d0_sigmad0calc->Write();
+
+    data_d0_sigmad0calcrun1->Scale(1/fdata_trkd0);
+    data_d0_sigmad0calcrun1->Write();
+
+    data_sigmapt_pt->Scale(1/fdata_trkdpt);
     data_sigmapt_pt->SetMinimum(1E-8);
     data_sigmapt_pt->Draw();
     data_sigmapt_pt->Write();
