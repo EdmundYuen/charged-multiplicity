@@ -22,7 +22,7 @@
 using namespace std;
 using namespace ROOT::Math;
 
-void track_selection_redo()
+void track_selection_redoMC()
 {
     //===========================implement cuts================================
     const double eta_cut = 2.;
@@ -40,7 +40,7 @@ void track_selection_redo()
 
     //===========================retrieve ROOT file============================
 
-    TFile *datafile = TFile::Open("tree1.root", "READ");
+    TFile *datafile = TFile::Open("treesCUETP8M1_66.root", "READ");
     TTree *datatree = (TTree*)datafile->Get("UETree/data");
 
     //===========================define variables to read TTree================
@@ -224,7 +224,8 @@ void track_selection_redo()
                                 //using formula from paper of run 1 result, d0 is leaf value
                                 fdata_d0 = (*fvecdata_d0)[t];
                                 fdata_sigmad0 = sqrt(pow(((*fvecdata_d0err)[t]), 2) + (fdata_wx)*(fdata_wy));
-                                fdata_sigmad0calc = fmin(0.05, (fdata_sigmad0));
+                                //fdata_sigmad0calc = fmin(0.05, (fdata_sigmad0));
+                                fdata_sigmad0calc = fdata_sigmad0;
                                 fdata_d0_sigmad0run1 = ((fdata_d0) / (fdata_sigmad0calc));
 
                                 //fdata_dz_sigmadz = ((*fvecdata_dz)[t])/((*fvecdata_vtxzerr)[t]);
@@ -314,7 +315,7 @@ void track_selection_redo()
     cout << "wz is " << fdata_wz << endl;
     cout << "cut on d0 is " << sqrt(0.0025 - fdata_wx*fdata_wy) << endl;
 
-    TFile data_plot("no_cut_data_histo.root", "recreate");
+    TFile reco_plot("no_cut_reco_histo.root", "recreate");
     TCanvas *canvas = new TCanvas ("data eta", "data #eta");
     //canvas->Divide (2,2);
 
@@ -376,7 +377,7 @@ void track_selection_redo()
 
     //canvas->cd(4);
 
-    data_plot.Write();
+    reco_plot.Write();
 
     //data_eta_histo->DrawNormalized("", 1);
     //data_eta_histo->Write();
