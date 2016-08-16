@@ -3,7 +3,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
+//#include <TH3.h>
 #include <algorithm>
 #include "math.h"
 #include <vector>
@@ -43,6 +43,7 @@ void check_d0()
     //==============================================Variables==============================================================
     float fdata_vtxxysize, fdata_vtxzsize;
     float fdata_totaltrk, fdata_multiplicity;
+    float fvtxx_less_vtxxBS, fvtxy_less_vtxyBS, fvtxz_less_vtxzBS;
 
     //===========================Retrieve ROOT file============================
 
@@ -116,10 +117,16 @@ void check_d0()
     TH1F *vtxy_vs_evts = new TH1F ("vtxy_vs_evts", "vtxy_vs_evts", 100, -0.5, 0.5);
     TH2F *vtxy_vs_evts2D = new TH2F ("vtxy_vs_evts2D", "vtxy_vs_evts2D", 100, -0.5, 0.5, 100000, 0, 100000);
     TH1F *vtxz_vs_evts = new TH1F ("vtxz_vs_evts", "vtxz_vs_evts", 400, -10, 10);
-    TH2F *vtxz_vs_evts2D = new TH2F ("vtxz_vs_evts2D", "vtxz_vs_evts2D", 400, -2, -1, 100000, 0, 100000);
-    TH2F *vtxz_vs_evts2Dnocut = new TH2F ("vtxz_vs_evts2Dnocut", "vtxz_vs_evts2Dnocut", 400, -2, -1, 100000, 0, 100000);
+    TH2F *vtxz_vs_evts2D = new TH2F ("vtxz_vs_evts2D", "vtxz_vs_evts2D", 100000, 0, 100000, 400, -2, -1);
+    //TH2F *vtxz_vs_evts2Dnocut = new TH2F ("vtxz_vs_evts2Dnocut", "vtxz_vs_evts2Dnocut", 400, -2, -1, 100000, 0, 100000);
     TH2F *vtxz_vs_evts2D_aftvtxselection = new TH2F ("vtxz_vs_evts2D_with_vtxselection", "vtxz_vs_evts2D with vtx selection", 400, -2, -1, 100000, 0, 100000);
-    TH3F *vtxz_vs_evts_vs_multiplicity = new TH3F ("vtxz_vs_evts3D", "vtxz_vs_evts3D", 900, -2, 1, 100000, 0, 100000, 300, 0, 300);
+
+    TH1F *vtxx_less_vtxxBS = new TH1F ("vtxx_less_vtxxBS", "vtxx_less_vtxxBS", 400, -10, 10);
+    TH2F *vtxx_less_vtxxBS2D = new TH2F ("vtxx_less_vtxxBS2D", "vtxx_less_vtxxBS2D", 100000, 0, 100000, 400, -10, 10);
+    TH1F *vtxy_less_vtxyBS = new TH1F ("vtxy_less_vtxyBS", "vtxy_less_vtxyBS", 400, -10, 10);
+    TH2F *vtxy_less_vtxyBS2D = new TH2F ("vtxy_less_vtxyBS2D", "vtxy_less_vtxyBS2D", 100000, 0, 100000, 400, -10, 10);
+    TH1F *vtxz_less_vtxzBS = new TH1F ("vtxz_less_vtxzBS", "vtxz_less_vtxzBS", 400, -10, 10);
+    TH2F *vtxz_less_vtxzBS2D = new TH2F ("vtxz_less_vtxzBS2D", "vtxz_less_vtxzBS2D", 100000, 0, 100000, 400, -10, 10);
 
     TH1F *data_d0 = new TH1F("data_d0", "data d_{0}", 400, -1, 1);
     TH1F *data_d0nocut = new TH1F("data_d0nocut", "data d_{0} nocut", 200, -1, 1);
@@ -144,12 +151,19 @@ void check_d0()
                 {
                     vtxx_vs_evts->Fill((*fvecdata_vtxx)[vtxx]);
                     vtxx_vs_evts2D->Fill((*fvecdata_vtxx)[vtxx], evt);
+                    fvtxx_less_vtxxBS = ((*fvecdata_vtxx)[vtxx]) - ((*fvecdata_vtxxBS)[vtxx]);
+                    vtxx_less_vtxxBS->Fill(fvtxx_less_vtxxBS);
+                    vtxx_less_vtxxBS2D->Fill(evt, fvtxx_less_vtxxBS);
                 }
 
                 for (int vtxy = 0; vtxy < fvecdata_vtxy->size(); ++vtxy)
                 {
                     vtxy_vs_evts->Fill((*fvecdata_vtxy)[vtxy]);
                     vtxy_vs_evts2D->Fill((*fvecdata_vtxy)[vtxy], evt);
+                    fvtxy_less_vtxyBS = ((*fvecdata_vtxy)[vtxy]) - ((*fvecdata_vtxyBS)[vtxy]);
+                    vtxy_less_vtxyBS->Fill(fvtxy_less_vtxyBS);
+                    vtxy_less_vtxyBS2D->Fill(evt, fvtxy_less_vtxyBS);
+
                 }
 
                 fdata_totaltrk = data_tracks->size();
@@ -157,7 +171,6 @@ void check_d0()
                 //loop through vertex
                 for (int vtxz = 0; vtxz < fvecdata_vtxz->size(); ++vtxz)
                 {
-                    vtxz_vs_evts2Dnocut->Fill((*fvecdata_vtxz)[vtxz], evt);
                     vtxz_vs_evts->Fill((*fvecdata_vtxz)[vtxz]);
 
                     fdata_vtxxysize = sqrt(pow(((*fvecdata_vtxx)[vtxz]) - ((*fvecdata_vtxxBS)[vtxz]), 2) + pow(((*fvecdata_vtxy)[vtxz]) - ((*fvecdata_vtxyBS)[vtxz]), 2));
@@ -166,13 +179,15 @@ void check_d0()
                     //data_vtxz-BS->Fill((*fvecdata_vtxz)[vtxz]-(*fvecdata_vtxzBS)[vtxz]);
 
                     //if ((*fvecdata_vtxz)[vtxz] < -1.69 || (*fvecdata_vtxz)[vtxz] > -1.68)
-                    //if ((*fvecdata_vtxz)[vtxz] < -1.69)
-                    //if ((*fvecdata_vtxz)[vtxz] < -1.506 && (*fvecdata_vtxz)[vtxz] > -1.51)
                     //{
                         //if ((*fvecdata_vtxz)[vtxz] < -1.63 || (*fvecdata_vtxz)[vtxz] > -1.62)
                         //{
-                            //if ((*fvecdata_vtxz)[vtxz] >= -1.505)
-                            vtxz_vs_evts2D->Fill(evt, (*fvecdata_vtxz)[vtxz]);
+                    fvtxz_less_vtxzBS = ((*fvecdata_vtxz)[vtxz]) - ((*fvecdata_vtxzBS)[vtxz]);
+
+                    vtxz_vs_evts2D->Fill(evt, (*fvecdata_vtxz)[vtxz]);
+                    vtxz_less_vtxzBS->Fill(fvtxz_less_vtxzBS);
+                    vtxz_less_vtxzBS2D->Fill(evt, fvtxz_less_vtxzBS);
+
 
                             //looping through tracks
                             for (int trk = 0; trk < data_tracks->size(); ++trk)
@@ -181,7 +196,12 @@ void check_d0()
                                 data_d0nocut->Fill((*fvecdata_d0)[trk]);
                                 data_dznocut->Fill((*fvecdata_dz)[trk]);
                                 data_d0err->Fill((*fvecdata_d0err)[trk]);
-                                //++fdata_multiplicity;
+
+                                if ((fvtxz_less_vtxzBS >= 0) && (fvtxz_less_vtxzBS <= 0.055))
+                                {
+                                    data_d0->Fill((*fvecdata_d0)[trk]);
+                                }
+
 
                             }
 
@@ -209,22 +229,27 @@ void check_d0()
     vtxy_vs_evts2D->Draw();
     vtxy_vs_evts2D->Write();
 
-    vtxz_vs_evts_vs_multiplicity->Draw();
-    vtxz_vs_evts_vs_multiplicity->Write();
+    //vtxz_vs_evts_vs_multiplicity->Draw();
+    //vtxz_vs_evts_vs_multiplicity->Write();
 
     vtxz_vs_evts->Draw();
     vtxz_vs_evts->Write();
     vtxz_vs_evts2D->Draw();
     vtxz_vs_evts2D->Write();
-    vtxz_vs_evts2Dnocut->Draw();
-    vtxz_vs_evts2Dnocut->Write();
+
+    vtxx_less_vtxxBS->Write();
+    vtxx_less_vtxxBS2D->Write();
+    vtxy_less_vtxyBS->Write();
+    vtxy_less_vtxyBS2D->Write();
+    vtxz_less_vtxzBS->Write();
+    vtxz_less_vtxzBS2D->Write();
 
     data_d0nocut->Draw();
     data_d0nocut->Write();
+    data_d0->Write();
     data_d0err->SetLineColor(kBlack);
     data_d0err->Scale(1/fdata_totaltrk);
     data_d0err->Write();
-
 
     data_dznocut->Draw();
     data_dznocut->Write();
