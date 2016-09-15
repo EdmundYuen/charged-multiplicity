@@ -279,13 +279,14 @@ void track_selection_redo()
                 if (ndata_zerobias == 1)
                 {
                     ndata_totaltrk = data_tracks->size();
-                    ++fdata_evt;
 
                     int vtxdof = 0;
 
                     ndata_numberofvtxxBS = fvecdata_vtxxBS->size();
                     ndata_numberofvtxyBS = fvecdata_vtxyBS->size();
                     ndata_numberofvtxzBS = fvecdata_vtxzBS->size();
+                    fdata_multiplicity = 0;
+                    ++fdata_evt;
 
     //========================================================= Start of Vertex Loop ================================================================
 
@@ -302,7 +303,6 @@ void track_selection_redo()
                             {
                                 data_vtxzposn->Fill((*fvecdata_vtxzBS)[vtxnumber]);
                                 ++fdata_numselectedvtxz;
-                                fdata_multiplicity = 0;
 
     //========================================================= Start of Trk Loop ================================================================
 
@@ -410,7 +410,6 @@ void track_selection_redo()
                                         }
                                     }
                                 }
-                                data_multiplicity->Fill(fdata_multiplicity);
     //========================================================= End of Trk Loop ================================================================
                             }
                             //}
@@ -418,6 +417,7 @@ void track_selection_redo()
                     }
     //========================================================= End of Vertex Loop ================================================================
                 }
+                data_multiplicity->Fill(fdata_multiplicity);
             }
         }
     //========================================================= End of Evt Loop ================================================================
@@ -533,7 +533,7 @@ void track_selection_redo()
         //ratio_pad->Draw();
 
         data_pad->cd();
-        data_multiplicity->Scale(1/fdata_multiplicity_norm);
+        data_multiplicity->Scale(1/fdata_evt);
         data_multiplicity->GetXaxis()->SetTitle("Multiplicity");
         data_multiplicity->GetYaxis()->SetTitleOffset(1.1);
         data_multiplicity->GetYaxis()->SetTitle("Fraction of Tracks");
@@ -823,6 +823,7 @@ void track_selection_redo()
                 {
                     nreco_totaltrk = reco_tracks->size();
                     ++freco_evt;
+                    freco_multiplicity = 0;
 
                     int vtxdof = 0;
 
@@ -845,7 +846,6 @@ void track_selection_redo()
                                 {
                                     reco_vtxzposn->Fill((*fvecreco_vtxzBS)[vtxnumber]);
                                     ++freco_numselectedvtxz;
-                                    freco_multiplicity = 0;
 
     //========================================================= Start of Trk Loop ================================================================
 
@@ -953,13 +953,14 @@ void track_selection_redo()
                                             }
                                         }
                                     }
-                                    reco_multiplicity->Fill(freco_multiplicity);
+
     //========================================================= End of Trk Loop ================================================================
                                 }
                             //}
                         }
                     }
     //========================================================= End of Vertex Loop ================================================================
+                    reco_multiplicity->Fill(freco_multiplicity);
                 }
             }
         }
