@@ -6,6 +6,7 @@
 #include "math.h"
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include "TLorentzVector.h"
 #include "TSystem.h"
 #include "TCanvas.h"
@@ -18,13 +19,25 @@
 #include "TAxis.h"
 #include "TStyle.h"
 #include "TAttAxis.h"
+#include "TString.h"
+#include "TChain.h"
+#include "TChainElement.h"
 
 using namespace std;
 using namespace ROOT::Math;
+vector<TString> *getListOfFiles(TString);
+
 
 void track_selection_redo()
 {
-//===========================implement cuts================================
+    TH1::SetDefaultSumw2(1);
+
+//=========================== Filling vector<TString> to loop over files ====================================================
+
+    //vector<TString> *vfiles = new vector<TString>();
+
+
+//=========================== Implement Cuts ================================
     const double eta_cut = 2.;
     const double vtx_number_cut = 1.0;
     const float vtxxysize = 2;
@@ -39,12 +52,13 @@ void track_selection_redo()
     const float dof_cut = 4;
     float fdata_multiplicity_norm = 0;
     float freco_multiplicity_norm = 0;
+    float freco_totalevt, fdata_totalevt;
 
     TH1F *data_multiplicity = new TH1F("Normalized_Data_Multiplicity", "Normalized Data Multiplicity", 200, 0, 200);
     TH1F *reco_multiplicity = new TH1F("Normalized_Reco_Multiplicity", "Normalized Reco Multiplicity", 200, 0, 200);
 
     int nselect = 0;
-    cout << "Enter 0 for data, 1 for reco and 2 for both: ";
+    cout << "Enter 0 for data, 1 for Herwig or 2 for both: ";
     cin >> nselect;
 
     while (nselect > 2)
@@ -89,83 +103,36 @@ void track_selection_redo()
         //float fdata_d0_sigmad0 = 0;
         //float fdata_sigmapt_pt = 0;
         int ndata_totaltrk;
-
-//===========================retrieve ROOT file============================
-
-        TFile *datafile = TFile::Open("tree1.root", "READ");
-        TTree *datatree = (TTree*)datafile->Get("UETree/data");
-
-//===========================define variables to read TTree================
-
-        vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *data_tracks = 0;
-        datatree->SetBranchAddress("recoTracksp4", &data_tracks);
-
         int ndata_lumi;
-        datatree->SetBranchAddress("lumi", &ndata_lumi);
-
         int ndata_zerobias;
-        datatree->SetBranchAddress("trgZeroBias", &ndata_zerobias);
 
+    //=========================== Declaration of variables to read TTree ================
+
+        vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *data_tracks = 0; //pointer declaration has to be assigned to 0 to qualify as mull pointer
         vector<float> *fvecdata_vtxx = 0;
-        datatree->SetBranchAddress("vtxx", &fvecdata_vtxx);
-
         vector<float> *fvecdata_vtxy = 0;
-        datatree->SetBranchAddress("vtxy", &fvecdata_vtxy);
-
         vector<float> *fvecdata_vtxz = 0;
-        datatree->SetBranchAddress("vtxz", &fvecdata_vtxz);
-
         vector<float> *fvecdata_vtxxBS = 0;
-        datatree->SetBranchAddress("vtxxBS", &fvecdata_vtxxBS);
-
         vector<float> *fvecdata_vtxyBS = 0;
-        datatree->SetBranchAddress("vtxyBS", &fvecdata_vtxyBS);
-
         vector<float> *fvecdata_vtxzBS = 0;
-        datatree->SetBranchAddress("vtxzBS", &fvecdata_vtxzBS);
-
         vector<int> *nvecdata_highpurity = 0;
-        datatree->SetBranchAddress("recoTrackshighPurity", &nvecdata_highpurity);
-
         vector<int> *nvecdata_vtxndof = 0;
-        datatree->SetBranchAddress("vtxndof", &nvecdata_vtxndof);
-
         vector<float> *fvecdata_dz = 0;
-        datatree->SetBranchAddress("recoTracksdz", &fvecdata_dz);
-
         vector<float> *fvecdata_d0 = 0;
-        datatree->SetBranchAddress("recoTracksd0", &fvecdata_d0);
-
         vector<float> *fvecdata_dzerr = 0;
-        datatree->SetBranchAddress("recoTracksdzErr", &fvecdata_dzerr);
-
         vector<float> *fvecdata_d0err = 0;
-        datatree->SetBranchAddress("recoTracksd0Err", &fvecdata_d0err);
-
         vector<float> *fvecdata_pterr = 0;
-        datatree->SetBranchAddress("recoTracksptErr", &fvecdata_pterr);
-
         vector<float> *fvecdata_vtxxerr = 0;
-        datatree->SetBranchAddress("vtxxErr", &fvecdata_vtxxerr);
-
         vector<float> *fvecdata_vtxyerr = 0;
-        datatree->SetBranchAddress("vtxyErr", &fvecdata_vtxyerr);
-
         vector<float> *fvecdata_vtxzerr = 0;
-        datatree->SetBranchAddress("vtxzErr", &fvecdata_vtxzerr);
-
         vector<int> *nvecdata_validhits = 0;
-        datatree->SetBranchAddress("recoTracksnValidHits", &nvecdata_validhits);
-
         vector<float> *fvecdata_trackschi2n = 0;
-        datatree->SetBranchAddress("recoTrackschi2n", &fvecdata_trackschi2n);
-
 
     //============================================== Histos for pT, eta, phi ==============================================================
 
-        TH1F *data_pt_histo = new TH1F ("data pT", "Normalized data p_{T}", 200, 0, 10);
-        TH1F *data_eta_histo = new TH1F("data eta", "Normalised data #eta", 50, -2.5, 2.5);
-        TH1F *data_phi_histo = new TH1F ("data phi", "Normalized_data #phi", 60, -3, 3);
+        TH1F *data_pt_histo = new TH1F ("data pT", "Working Plot #sqrt{s} = 13TeV", 120, 0, 6);
+        TH1F *data_eta_histo = new TH1F("data eta", "Working Plot #sqrt{s} = 13TeV", 50, -2.5, 2.5);
+        TH1F *data_phi_histo = new TH1F ("data phi", "Working Plot #sqrt{s} = 13TeV", 60, -3, 3);
 
     //================================================== Histos for dz and sigma_dz =========================================================================
         TH1F *data_dzleaf = new TH1F ("data_dz", "data dz", 400, -10, 10);
@@ -199,11 +166,58 @@ void track_selection_redo()
 
     //================================================== Histos for Multiplicity =========================================================================
 
-        TH1F *data_multiplicity = new TH1F("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
-
+        TH1F *data_multiplicity = new TH1F("Normalized_Multiplicity", "Working Plot #sqrt{s} = 13TeV", 200, 0, 200);
         TH1F *data_vtxzminusvtxz = new TH1F ("vtxzminusvtxz", "vtxzminusvtxz", 800, -4, 4);
         TH1F *data_vtxzposn = new TH1F ("vtxzposn", "vtxzpos^{n}", 400, -20, 20);
 
+    //=========================== Retrieve ROOT file============================
+
+        vector<TString> *datafiles = new vector<TString>();
+        cout << "Getting list of files..." << endl;
+        datafiles = getListOfFiles("filelistdata.txt");
+        cout << "File list stored" << endl;
+
+        TFile *datafile;
+        TTree *datatree;
+    //while (getline(filedata, datastr))
+    for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
+    {
+        //cout << "Opening new file " << *itlistdatafiles << endl;
+        //TString Tdatastr(datastr);
+        //datafile = TFile::Open("tree1.root", "READ");
+        //TTree *datatree = (TTree*)datafile->Get("UETree/data");
+        //datafile = new TFile(*itlistdatafiles, "READ");
+        //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
+        //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
+        datafile = TFile::Open(*itlistdatafiles, "READ");
+        cout << "Opened " << *itlistdatafiles << endl;
+        datatree = (TTree*)datafile->Get("UETree/data");
+        cout<< "Congratulations you have succeeded in looping over the damn data files!\n";
+    //============================================== Assignment of TTree Branches ====================================================
+
+        datatree->SetBranchAddress("recoTracksp4", &data_tracks);
+        datatree->SetBranchAddress("lumi", &ndata_lumi);
+        datatree->SetBranchAddress("trgZeroBias", &ndata_zerobias);
+        datatree->SetBranchAddress("vtxx", &fvecdata_vtxx);
+        datatree->SetBranchAddress("vtxy", &fvecdata_vtxy);
+        datatree->SetBranchAddress("vtxz", &fvecdata_vtxz);
+        datatree->SetBranchAddress("vtxxBS", &fvecdata_vtxxBS);
+        datatree->SetBranchAddress("vtxyBS", &fvecdata_vtxyBS);
+        datatree->SetBranchAddress("vtxzBS", &fvecdata_vtxzBS);
+        datatree->SetBranchAddress("recoTrackshighPurity", &nvecdata_highpurity);
+        datatree->SetBranchAddress("vtxndof", &nvecdata_vtxndof);
+        datatree->SetBranchAddress("recoTracksdz", &fvecdata_dz);
+        datatree->SetBranchAddress("recoTracksd0", &fvecdata_d0);
+        datatree->SetBranchAddress("recoTracksdzErr", &fvecdata_dzerr);
+        datatree->SetBranchAddress("recoTracksd0Err", &fvecdata_d0err);
+        datatree->SetBranchAddress("recoTracksptErr", &fvecdata_pterr);
+        datatree->SetBranchAddress("vtxxErr", &fvecdata_vtxxerr);
+        datatree->SetBranchAddress("vtxyErr", &fvecdata_vtxyerr);
+        datatree->SetBranchAddress("vtxzErr", &fvecdata_vtxzerr);
+        datatree->SetBranchAddress("recoTracksnValidHits", &nvecdata_validhits);
+        datatree->SetBranchAddress("recoTrackschi2n", &fvecdata_trackschi2n);
+
+    //============================================== End of Assignment TTree Branches ====================================================
 
         Int_t ndata_totalEvt = (Int_t)datatree->GetEntries();
         cout << "There is a total of " << ndata_totalEvt << " events." << endl;
@@ -353,7 +367,7 @@ void track_selection_redo()
 
                                         //if (data_vec.Pt() >= pt_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut && fabs(fdata_dz_sigmadzrun1 < dz_dzErr_cut))
                                         //if ((data_vec.Pt() >= pt_cut) && (fabs(fdata_sigmapt_pt) < ptErr_pt_cut))
-                                        if (data_vec.Pt() >= pt_cut)
+                                        if (data_vec.Pt() >= pt_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
                                         {
                                             data_eta_histo->Fill(data_vec.Eta());
                                             ++fdata_trketa;
@@ -422,6 +436,9 @@ void track_selection_redo()
         }
     //========================================================= End of Evt Loop ================================================================
 
+    }
+
+    //========================================================= End of File Loop ================================================================
         cout << "Before plotting." << endl;
         cout << "wx is " << fdata_wx << endl;
         cout << "wy is " << fdata_wy << endl;
@@ -429,35 +446,64 @@ void track_selection_redo()
         cout << "cut on d0 is " << sqrt(0.0025 - fdata_wx*fdata_wy) << endl;
         cout << "Largest z-coordinate of BS is " << fdata_vtxzBSupper << endl;
 
-        TFile data_plot("Histos/data_tree1.root", "recreate");
+        TFile data_plot("Histos/data_trees.root", "recreate");
         //gStyle->SetOptLogy();
 
         //canvas->Divide (2,2);
 
+        //TCanvas *eta_canvas = new TCanvas ("eta canvas", "Eta Preliminary Results", 2);
+        //eta_canvas->cd();
         data_eta_histo->Scale(1/fdata_trketa);
         data_eta_histo->SetMaximum(0.04);
         data_eta_histo->GetXaxis()->SetTitle("#eta");
-        data_eta_histo->GetYaxis()->SetTitleOffset(1.3);
-        data_eta_histo->GetYaxis()->SetTitle("Fraction of Tracks");
-        data_eta_histo->Draw();
+        //data_eta_histo->GetYaxis()->SetTitleOffset(1.3);
+        //data_eta_histo->GetYaxis()->SetTitleSize(0.01);
+        data_eta_histo->GetYaxis()->SetTitle("#frac{1}{N_{ch}} #frac{dN_{ch}}{d#eta}");
+        //data_eta_histo->GetYaxis()->SetLabelSize(0.02);
+        //data_eta_histo->GetYaxis()->SetLabelOffset(0.001);
+        //data_eta_histo->SetLineStyle(0);
+        //data_eta_histo->SetLineColorAlpha(0, 0);
+        //data_eta_histo->SetMarkerStyle(33);
+        data_eta_histo->Draw("P");
         data_eta_histo->Write();
+        //eta_canvas->Update();
+        //eta_canvas->SaveAs("eta_data.png");
 
         //canvas->cd(3);
+        //TCanvas *phi_canvas = new TCanvas ("phi canvas", "Phi Preliminary Results", );
+        //phi_canvas->cd();
         data_phi_histo->Scale(1/fdata_trkphi);
         data_phi_histo->SetMinimum(0.014);
         data_phi_histo->SetMaximum(0.024);
+        //data_phi_histo->SetLineStyle(0);
+        //data_phi_histo->SetLineColorAlpha(0,0);
+        //data_phi_histo->SetMarkerStyle(33);
         data_phi_histo->GetXaxis()->SetTitle("#phi");
-        data_phi_histo->GetYaxis()->SetTitleOffset(1.3);
-        data_phi_histo->GetYaxis()->SetTitle("Fraction of Tracks");
+        //data_phi_histo->GetYaxis()->SetTitleOffset(1.2);
+        //data_phi_histo->GetYaxis()->SetTitleSize(0.01);
+        //data_phi_histo->GetYaxis()->SetLabelOffset(0.001);
+        //data_phi_histo->GetYaxis()->SetLabelSize(0.02);
+        data_phi_histo->GetYaxis()->SetTitle("#frac{1}{N_{ch}} #frac{dN_{ch}}{d#phi}");
+        data_phi_histo->Draw("P");
         data_phi_histo->Write();
+        //phi_canvas->Update();
+        //phi_canvas->SaveAs("phi_data.png");
 
         //canvas->cd(1);
-        gPad->SetLogy();
+        //TCanvas *pt_canvas = new TCanvas ("pt canvas", "pt Preliminary Results", 4);
+        //pt_canvas->cd();
+        //gPad->SetLogy();
         data_pt_histo->Scale(1/fdata_trkpt);
         data_pt_histo->GetXaxis()->SetTitle("p_{T}");
-        data_pt_histo->GetYaxis()->SetTitleOffset(1.3);
+        //data_pt_histo->GetYaxis()->SetTitleOffset(1.3);
         data_pt_histo->GetYaxis()->SetTitle("Fraction of Tracks");
+        //data_pt_histo->SetLineColorAlpha(0, 0);
+        //data_pt_histo->SetMarkerStyle(33);
+        data_pt_histo->Draw("P");
         data_pt_histo->Write();
+        //pt_canvas->Update();
+        //pt_canvas->SaveAs("pt_data.png");
+
 
         data_dzleaf->DrawNormalized("", 1);
         data_dzleaf->Write();
@@ -525,7 +571,7 @@ void track_selection_redo()
         data_chi2n->GetYaxis()->SetTitle("Fraction of Tracks");
         data_chi2n->Write();
 
-        TCanvas *multiplicity = new TCanvas ("multiplicity", "Multiplicity");
+        TCanvas *multiplicity = new TCanvas ("multiplicity", "Data Multiplicity");
         TPad *data_pad = new TPad ("data_pad", "Data Pad", 0, 0.3, 1.0, 1.0);
         //TPad *ratio_pad = new TPad ("ratio_pad", "Ratio Pad", 0, 0, 1.0, 0.3);
 
@@ -534,9 +580,10 @@ void track_selection_redo()
 
         data_pad->cd();
         data_multiplicity->Scale(1/fdata_evt);
-        data_multiplicity->GetXaxis()->SetTitle("Multiplicity");
+        data_multiplicity->GetXaxis()->SetTitle("N_{ch}");
         data_multiplicity->GetYaxis()->SetTitleOffset(1.1);
-        data_multiplicity->GetYaxis()->SetTitle("Fraction of Tracks");
+        data_multiplicity->GetYaxis()->SetTitle("P");
+        data_multiplicity->SetLineColorAlpha(0,0);
         data_multiplicity->SetMarkerStyle(8);
         data_multiplicity->SetMarkerColor(kViolet);
         data_multiplicity->SetMarkerSize(1.5);
@@ -544,14 +591,15 @@ void track_selection_redo()
         data_multiplicity->SetLineColor(kGreen);
         gPad->SetTickx();
         gPad->SetTicky();
-        data_multiplicity->Draw();
+        data_multiplicity->Draw("P");
         data_multiplicity->Write();
 
-        TLegend *dataleg_multiplicity = new TLegend (0.6, 0.7, 0.9, 0.9);
+        TLegend *dataleg_multiplicity = new TLegend (0.6, 0.6, 0.8, 0.8);
         dataleg_multiplicity->SetFillColor(0);
+        dataleg_multiplicity->SetFillStyle(0);
         dataleg_multiplicity->SetBorderSize(0);
-        dataleg_multiplicity->SetTextSize(0.02);
-        dataleg_multiplicity->AddEntry(data_multiplicity, "data", "lf");
+        dataleg_multiplicity->SetTextSize(0.04);
+        dataleg_multiplicity->AddEntry(data_multiplicity, "Data", "lf");
         dataleg_multiplicity->Draw();
         dataleg_multiplicity->Write();
 
@@ -592,14 +640,13 @@ void track_selection_redo()
         gPad->SetLogy();
         data_pt_histo->Scale(1/fdata_trk);
         data_pt_histo->Draw();*/
-
+        fdata_totalevt = fdata_evt;
     }
 
 //==================================================== Reco Loop ===================================================================
 
     if ((nselect == 1) || (nselect == 2))
     {
-
         //==============================================Variables==============================================================
 
         float freco_evt = 0;
@@ -636,80 +683,38 @@ void track_selection_redo()
 
 //=========================== Retrieve ROOT file ============================
 
-        TFile *recofile = TFile::Open("treesCUETP8M1_66.root", "READ");
-        TTree *recotree = (TTree*)recofile->Get("UETree/data");
+        //TFile *recofile = TFile::Open("treesCUETP8M1_66.root", "READ");
+        //TTree *herwigtree = (TTree*)recofile->Get("UETree/data");
 
 //=========================== Define variables to read TTree ================
 
         vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *reco_tracks = 0;
-        recotree->SetBranchAddress("recoTracksp4", &reco_tracks);
-
         int nreco_lumi;
-        recotree->SetBranchAddress("lumi", &nreco_lumi);
-
         int nreco_zerobias;
-        recotree->SetBranchAddress("trgZeroBias", &nreco_zerobias);
-
         vector<float> *fvecreco_vtxx = 0;
-        recotree->SetBranchAddress("vtxx", &fvecreco_vtxx);
-
         vector<float> *fvecreco_vtxy = 0;
-        recotree->SetBranchAddress("vtxy", &fvecreco_vtxy);
-
         vector<float> *fvecreco_vtxz = 0;
-        recotree->SetBranchAddress("vtxz", &fvecreco_vtxz);
-
         vector<float> *fvecreco_vtxxBS = 0;
-        recotree->SetBranchAddress("vtxxBS", &fvecreco_vtxxBS);
-
         vector<float> *fvecreco_vtxyBS = 0;
-        recotree->SetBranchAddress("vtxyBS", &fvecreco_vtxyBS);
-
         vector<float> *fvecreco_vtxzBS = 0;
-        recotree->SetBranchAddress("vtxzBS", &fvecreco_vtxzBS);
-
         vector<int> *nvecreco_highpurity = 0;
-        recotree->SetBranchAddress("recoTrackshighPurity", &nvecreco_highpurity);
-
         vector<int> *nvecreco_vtxndof = 0;
-        recotree->SetBranchAddress("vtxndof", &nvecreco_vtxndof);
-
         vector<float> *fvecreco_dz = 0;
-        recotree->SetBranchAddress("recoTracksdz", &fvecreco_dz);
-
         vector<float> *fvecreco_d0 = 0;
-        recotree->SetBranchAddress("recoTracksd0", &fvecreco_d0);
-
         vector<float> *fvecreco_dzerr = 0;
-        recotree->SetBranchAddress("recoTracksdzErr", &fvecreco_dzerr);
-
         vector<float> *fvecreco_d0err = 0;
-        recotree->SetBranchAddress("recoTracksd0Err", &fvecreco_d0err);
-
         vector<float> *fvecreco_pterr = 0;
-        recotree->SetBranchAddress("recoTracksptErr", &fvecreco_pterr);
-
         vector<float> *fvecreco_vtxxerr = 0;
-        recotree->SetBranchAddress("vtxxErr", &fvecreco_vtxxerr);
-
         vector<float> *fvecreco_vtxyerr = 0;
-        recotree->SetBranchAddress("vtxyErr", &fvecreco_vtxyerr);
-
         vector<float> *fvecreco_vtxzerr = 0;
-        recotree->SetBranchAddress("vtxzErr", &fvecreco_vtxzerr);
-
         vector<int> *nvecreco_validhits = 0;
-        recotree->SetBranchAddress("recoTracksnValidHits", &nvecreco_validhits);
-
         vector<float> *fvecreco_trackschi2n = 0;
-        recotree->SetBranchAddress("recoTrackschi2n", &fvecreco_trackschi2n);
-
 
     //============================================== Histos for pT, eta, phi ==============================================================
 
-        TH1F *reco_pt_histo = new TH1F ("reco pT", "Normalized reco p_{T}", 200, 0, 10);
-        TH1F *reco_eta_histo = new TH1F("reco eta", "Normalised reco #eta", 50, -2.5, 2.5);
-        TH1F *reco_phi_histo = new TH1F ("reco phi", "Normalized_reco #phi", 60, -3, 3);
+        TH1F *reco_pt_histo = new TH1F ("reco pT", "Working Plot #sqrt{s} = 13TeV", 200, 0, 10);
+        TH1F *reco_eta_histo = new TH1F("reco eta", "Working Plot #sqrt{s} = 13TeV", 50, -2.5, 2.5);
+        TH1F *reco_phi_histo = new TH1F ("reco phi", "Working Plot #sqrt{s} = 13TeV", 60, -3, 3);
 
     //================================================== Histos for dz and sigma_dz =========================================================================
         TH1F *reco_dzleaf = new TH1F ("reco_dz", "reco dz", 400, -10, 10);
@@ -743,17 +748,65 @@ void track_selection_redo()
 
     //================================================== Histos for Multiplicity =========================================================================
 
-        //TH1F *reco_multiplicity = new TH1F("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
+        TH1F *reco_multiplicity = new TH1F("Normalized_Multiplicity", "Working Plot #sqrt{s} = 13TeV", 200, 0, 200);
         TH1F *reco_vtxzminusvtxz = new TH1F ("vtxzminusvtxz", "vtxzminusvtxz", 800, -4, 4);
         TH1F *reco_vtxzposn = new TH1F ("vtxzposn", "vtxzpos^{n}", 400, -20, 20);
 
+        //=========================== Retrieve ROOT file============================
 
-        Int_t nreco_totalEvt = (Int_t)recotree->GetEntries();
+        vector<TString> *herwigfiles = new vector<TString>();
+        cout << "Getting list of files..." << endl;
+        herwigfiles = getListOfFiles("filelistherwig.txt");
+        cout << "File list stored" << endl;
+
+        TFile *herwigfile;
+        TTree *herwigtree;
+
+    //========================================================= Start of Herwig File Loop ================================================================
+
+    //while (getline(filedata, datastr))
+    for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
+    {
+        cout << "Opening new file " << *itlistherwigfiles << endl;
+        //TString Tdatastr(datastr);
+        //TFile *datafile = TFile::Open("tree1.root", "READ");
+        //TTree *datatree = (TTree*)datafile->Get("UETree/data");
+        //datafile = new TFile(*itlistdatafiles, "READ");
+        //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
+        //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
+        herwigfile = TFile::Open(*itlistherwigfiles, "READ");
+        cout << "Opened " << *itlistherwigfiles << endl;
+        herwigtree = (TTree*)herwigfile->Get("UETree/data");
+        cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
+
+        herwigtree->SetBranchAddress("recoTracksp4", &reco_tracks);
+        herwigtree->SetBranchAddress("lumi", &nreco_lumi);
+        herwigtree->SetBranchAddress("trgZeroBias", &nreco_zerobias);
+        herwigtree->SetBranchAddress("vtxx", &fvecreco_vtxx);
+        herwigtree->SetBranchAddress("vtxy", &fvecreco_vtxy);
+        herwigtree->SetBranchAddress("vtxz", &fvecreco_vtxz);
+        herwigtree->SetBranchAddress("vtxxBS", &fvecreco_vtxxBS);
+        herwigtree->SetBranchAddress("vtxyBS", &fvecreco_vtxyBS);
+        herwigtree->SetBranchAddress("vtxzBS", &fvecreco_vtxzBS);
+        herwigtree->SetBranchAddress("recoTrackshighPurity", &nvecreco_highpurity);
+        herwigtree->SetBranchAddress("vtxndof", &nvecreco_vtxndof);
+        herwigtree->SetBranchAddress("recoTracksdz", &fvecreco_dz);
+        herwigtree->SetBranchAddress("recoTracksd0", &fvecreco_d0);
+        herwigtree->SetBranchAddress("recoTracksdzErr", &fvecreco_dzerr);
+        herwigtree->SetBranchAddress("recoTracksd0Err", &fvecreco_d0err);
+        herwigtree->SetBranchAddress("recoTracksptErr", &fvecreco_pterr);
+        herwigtree->SetBranchAddress("vtxxErr", &fvecreco_vtxxerr);
+        herwigtree->SetBranchAddress("vtxyErr", &fvecreco_vtxyerr);
+        herwigtree->SetBranchAddress("vtxzErr", &fvecreco_vtxzerr);
+        herwigtree->SetBranchAddress("recoTracksnValidHits", &nvecreco_validhits);
+        herwigtree->SetBranchAddress("recoTrackschi2n", &fvecreco_trackschi2n);
+
+        Int_t nreco_totalEvt = (Int_t)herwigtree->GetEntries();
         cout << "There is a total of " << nreco_totalEvt << " events." << endl;
 
         for (int ev = 0; ev < nreco_totalEvt; ++ev)
         {
-            recotree->GetEntry(ev);
+            herwigtree->GetEntry(ev);
 
             if (nreco_lumi >= lumi_cut)
             {
@@ -810,11 +863,11 @@ void track_selection_redo()
         freco_wy = sqrt((freco_sqvtxy) / (freco_sqvtxynumber)); //RMS(?) of position of vtx y-coordinate Averaged over number of vtx
         freco_wz = sqrt((freco_sqvtxz) / (freco_sqvtxznumber)); //
 
-    //========================================================= Start of Evt Loop ================================================================
+    //========================================================= Start of Herwig Evt Loop ================================================================
 
         for (Int_t i = 0; i < nreco_totalEvt; ++i)
         {
-            recotree->GetEntry(i);
+            herwigtree->GetEntry(i);
             //cout << "At entry " << i << endl;
 
             if (nreco_lumi >= lumi_cut)
@@ -830,6 +883,7 @@ void track_selection_redo()
                     nreco_numberofvtxxBS = fvecreco_vtxxBS->size();
                     nreco_numberofvtxyBS = fvecreco_vtxyBS->size();
                     nreco_numberofvtxzBS = fvecreco_vtxzBS->size();
+
 
     //========================================================= Start of Vertex Loop ================================================================
 
@@ -961,11 +1015,15 @@ void track_selection_redo()
                     }
     //========================================================= End of Vertex Loop ================================================================
                     reco_multiplicity->Fill(freco_multiplicity);
+                    ++freco_evt;
                 }
             }
         }
-    //========================================================= End of Evt Loop ================================================================
+    //========================================================= End of Herwig Evt Loop ================================================================
 
+    }
+
+    //========================================================= End of Herwig File Loop ================================================================
         cout << "Before plotting." << endl;
         cout << "wx is " << freco_wx << endl;
         cout << "wy is " << freco_wy << endl;
@@ -982,7 +1040,7 @@ void track_selection_redo()
         reco_eta_histo->SetMaximum(0.04);
         reco_eta_histo->GetXaxis()->SetTitle("#eta");
         reco_eta_histo->GetYaxis()->SetTitleOffset(1.3);
-        reco_eta_histo->GetYaxis()->SetTitle("Fraction of Tracks");
+        reco_eta_histo->GetYaxis()->SetTitle("#frac{1}{N_{ch}} #frac{dN_{ch}}{d#eta}");
         reco_eta_histo->SetLineColor(4);
         reco_eta_histo->Draw();
         reco_eta_histo->Write();
@@ -993,7 +1051,7 @@ void track_selection_redo()
         reco_phi_histo->SetMaximum(0.024);
         reco_phi_histo->GetXaxis()->SetTitle("#phi");
         reco_phi_histo->GetYaxis()->SetTitleOffset(1.3);
-        reco_phi_histo->GetYaxis()->SetTitle("Fraction of Tracks");
+        reco_phi_histo->GetYaxis()->SetTitle("#frac{1}{N_{ch}} #frac{dN_{ch}}{d#phi}");
         reco_phi_histo->SetLineColor(4);
         reco_phi_histo->Write();
 
@@ -1002,7 +1060,7 @@ void track_selection_redo()
         reco_pt_histo->Scale(1/freco_trkpt);
         reco_pt_histo->GetXaxis()->SetTitle("p_{T}");
         reco_pt_histo->GetYaxis()->SetTitleOffset(1.3);
-        reco_pt_histo->GetYaxis()->SetTitle("Fraction of Tracks");
+        reco_pt_histo->GetYaxis()->SetTitle("#frac{1}{N_{ch}} #frac{dN_{ch}}{d#p_{T}}");
         reco_pt_histo->SetLineColor(4);
         reco_pt_histo->Write();
 
@@ -1090,10 +1148,10 @@ void track_selection_redo()
         //ratio_pad->Draw();
 
         reco_pad->cd();
-        reco_multiplicity->Scale(1/freco_multiplicity_norm);
-        reco_multiplicity->GetXaxis()->SetTitle("Multiplicity");
+        reco_multiplicity->Scale(1/freco_evt);
+        reco_multiplicity->GetXaxis()->SetTitle("N_{ch}");
         reco_multiplicity->GetYaxis()->SetTitleOffset(1.1);
-        reco_multiplicity->GetYaxis()->SetTitle("Fraction of Tracks");
+        reco_multiplicity->GetYaxis()->SetTitle("#frac{1}{N_{ev}} #frac{dN_{ch}}{dN_{ev}}");
         reco_multiplicity->SetMarkerStyle(8);
         reco_multiplicity->SetMarkerColor(kViolet);
         reco_multiplicity->SetMarkerSize(1.5);
@@ -1106,6 +1164,7 @@ void track_selection_redo()
 
         TLegend *recoleg_multiplicity = new TLegend (0.6, 0.7, 0.9, 0.9);
         recoleg_multiplicity->SetFillColor(0);
+        recoleg_multiplicity->SetFillStyle(0);
         recoleg_multiplicity->SetBorderSize(0);
         recoleg_multiplicity->SetTextSize(0.02);
         recoleg_multiplicity->AddEntry(reco_multiplicity, "reco", "lf");
@@ -1149,6 +1208,7 @@ void track_selection_redo()
         gPad->SetLogy();
         reco_pt_histo->Scale(1/freco_trk);
         reco_pt_histo->Draw();*/
+        freco_totalevt = freco_evt;
     }
 
     TFile data_reco ("Histos/data_reco.root", "recreate");
@@ -1158,7 +1218,8 @@ void track_selection_redo()
     TPad *divide_pad = new TPad ("ratio_pad", "Data/MC", 0, 0, 1, 0.3);
 
     data_reco_pad->cd();
-    data_multiplicity->Scale(1/fdata_multiplicity_norm);
+    gPad->SetLogy();
+    data_multiplicity->Scale(1/fdata_totalevt);
     data_multiplicity->GetXaxis()->SetTitle("Data Multiplicity");
     data_multiplicity->GetYaxis()->SetTitleOffset(1.1);
     data_multiplicity->GetYaxis()->SetTitle("Fraction of Tracks");
@@ -1169,10 +1230,10 @@ void track_selection_redo()
     data_multiplicity->SetLineColor(6);
     gPad->SetTickx();
     gPad->SetTicky();
-    data_multiplicity->Draw();
+    data_multiplicity->Draw("same");
     data_multiplicity->Write();
 
-    reco_multiplicity->Scale(1/freco_multiplicity_norm);
+    reco_multiplicity->Scale(1/freco_totalevt);
     reco_multiplicity->GetXaxis()->SetTitle("Reco Multiplicity");
     reco_multiplicity->GetYaxis()->SetTitleOffset(1.1);
     reco_multiplicity->GetYaxis()->SetTitle("Fraction of Tracks");
@@ -1189,7 +1250,7 @@ void track_selection_redo()
     TLegend *leg_multiplicity = new TLegend (0.6, 0.7, 0.9, 0.9);
     leg_multiplicity->SetFillStyle(0);
     leg_multiplicity->SetBorderSize(0);
-    leg_multiplicity->SetTextSize(0.07);
+    leg_multiplicity->SetTextSize(0.1);
     leg_multiplicity->AddEntry(data_multiplicity, "data", "lf");
     leg_multiplicity->AddEntry(reco_multiplicity, "reco", "lf");
     leg_multiplicity->Draw();
@@ -1197,6 +1258,7 @@ void track_selection_redo()
     data_reco_pad->Modified();
     data_reco_pad->Update();
 
+    //TH1F *data_multiplicity = new TH1F("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
     TH1F *data_reco_multiplicity = (TH1F*)data_multiplicity->Clone("data_reco_multiplicity");
 
     divide_pad->cd();
@@ -1222,7 +1284,76 @@ void track_selection_redo()
     data_reco_canvas->Write();
 }
 
+vector<TString> *getListOfFiles(TString strfiles)
+{
 
+    vector<TString>* vfiles = new vector<TString>;
+
+    if(strfiles.Contains(".root"))
+    {
+        TChain chain("evt","");
+        chain.Add(strfiles);
+        TObjArray* fileElements=chain.GetListOfFiles();
+        TIter next(fileElements);
+        TChainElement *chEl=0;
+        while (( chEl=(TChainElement*)next() ))
+            vfiles->push_back(TString(chEl->GetTitle()));
+    }
+    else if(strfiles.Contains(".txt"))
+    {
+        ifstream txtfile;
+        txtfile.open(strfiles);
+        if(!txtfile)
+        {
+            cout<<"Unable to read the txt file where the rootfiles are." << endl ;
+            cout << strfiles << " doesn't exist." << endl << "Aborting ...";
+            exit(0);
+        }
+
+        string filename;
+
+        while(txtfile>>filename && filename!="EOF")
+        vfiles->push_back(TString(filename));
+        txtfile.close();
+    }
+    else
+    {
+        cout << "Unknown type of input to get files. Must contain either .root or .txt extension." << endl << "Aborting ..." << endl;
+        exit(0);
+    }
+
+    cout << "[getListOfFiles] Will run on " << vfiles->size() << " files" << endl;
+    return vfiles;
+}
+
+
+/*vector<const char*> *getlistoffiles(string textfile)
+{
+    vector<const char*> *listdatafiles = new vector<const char*>();
+    //vector<TString>::iterator itlistdatafiles;
+    ifstream filedata (textfile);
+    string datastr;
+    int i = 0;
+
+    if (filedata.is_open())
+    {
+        //for (vector<string>::iterator *itdata = listoffiles->begin(); itdata!=listoffiles->end(); ++itdata)
+
+            while (getline (filedata, datastr))
+            {
+                cout << "data str is now " << datastr << endl;
+                listdatafiles->push_back(datastr.c_str());
+                ++i;
+                cout<< listdatafiles->back() << endl;
+            }
+            cout << "There are " << i << " files" << endl;
+
+    }
+
+    else cerr << "Unable to store file" << endl;
+
+    return listdatafiles;
+}*/
 
 
 
