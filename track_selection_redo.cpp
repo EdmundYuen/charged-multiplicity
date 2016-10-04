@@ -54,22 +54,22 @@ void track_selection_redo()
     float freco_multiplicity_norm = 0;
     float freco_totalevt, fdata_totalevt;
 
-    TH1F *data_multiplicity = new TH1F("Normalized_Data_Multiplicity", "Normalized Data Multiplicity", 200, 0, 200);
-    TH1F *reco_multiplicity = new TH1F("Normalized_Reco_Multiplicity", "Normalized Reco Multiplicity", 200, 0, 200);
+    //TH1F *data_multiplicity = new TH1F("Normalized_Data_Multiplicity", "Normalized Data Multiplicity", 200, 0, 200);
+    //TH1F *reco_multiplicity = new TH1F("Normalized_Reco_Multiplicity", "Normalized Reco Multiplicity", 200, 0, 200);
 
-    int nselect = 0;
-    cout << "Enter 0 for data, 1 for Herwig or 2 for both: ";
-    cin >> nselect;
+    //int nselect = 0;
+    //cout << "Enter 0 for data, 1 for Herwig or 2 for both: ";
+    //cin >> nselect;
 
-    while (nselect > 2)
-    {
-        cout << "Please enter 0, 1 or 2 only: ";
-        cin >> nselect;
-    }
+    //while (nselect > 2)
+    //{
+        //cout << "Please enter 0, 1 or 2 only: ";
+        //cin >> nselect;
+    //}
 //==================================================== Data Loop ===================================================================
 
-    if ((nselect == 0) || (nselect == 2))
-    {
+    //if ((nselect == 0) || (nselect == 2))
+    //{
 //==============================================Variables==============================================================
 
         float fdata_evt = 0;
@@ -126,6 +126,7 @@ void track_selection_redo()
         vector<float> *fvecdata_vtxyerr = 0;
         vector<float> *fvecdata_vtxzerr = 0;
         vector<int> *nvecdata_validhits = 0;
+        vector<int> *nvecdata_isfake = 0;
         vector<float> *fvecdata_trackschi2n = 0;
 
     //============================================== Histos for pT, eta, phi ==============================================================
@@ -216,6 +217,7 @@ void track_selection_redo()
         datatree->SetBranchAddress("vtxzErr", &fvecdata_vtxzerr);
         datatree->SetBranchAddress("recoTracksnValidHits", &nvecdata_validhits);
         datatree->SetBranchAddress("recoTrackschi2n", &fvecdata_trackschi2n);
+        datatree->SetBranchAddress("vtxisFake", &nvecdata_isfake);
 
     //============================================== End of Assignment TTree Branches ====================================================
 
@@ -313,7 +315,7 @@ void track_selection_redo()
 
                             //if (fdata_vtxxysize <= vtxxysize && fdata_vtxzsize <= vtxzsize)
                             //{
-                            if (ndata_numberofvtxzBS == vtx_number_cut)
+                            if (ndata_numberofvtxzBS == vtx_number_cut && (*nvecdata_isfake)[0] == 0)
                             {
                                 data_vtxzposn->Fill((*fvecdata_vtxzBS)[vtxnumber]);
                                 ++fdata_numselectedvtxz;
@@ -641,12 +643,12 @@ void track_selection_redo()
         data_pt_histo->Scale(1/fdata_trk);
         data_pt_histo->Draw();*/
         fdata_totalevt = fdata_evt;
-    }
+    //}
 
 //==================================================== Reco Loop ===================================================================
 
-    if ((nselect == 1) || (nselect == 2))
-    {
+    //if ((nselect == 1) || (nselect == 2))
+    //{
         //==============================================Variables==============================================================
 
         float freco_evt = 0;
@@ -709,6 +711,7 @@ void track_selection_redo()
         vector<float> *fvecreco_vtxzerr = 0;
         vector<int> *nvecreco_validhits = 0;
         vector<float> *fvecreco_trackschi2n = 0;
+        vector<int> *fvecreco_isfake = 0;
 
     //============================================== Histos for pT, eta, phi ==============================================================
 
@@ -800,6 +803,7 @@ void track_selection_redo()
         herwigtree->SetBranchAddress("vtxzErr", &fvecreco_vtxzerr);
         herwigtree->SetBranchAddress("recoTracksnValidHits", &nvecreco_validhits);
         herwigtree->SetBranchAddress("recoTrackschi2n", &fvecreco_trackschi2n);
+        herwigtree->SetBranchAddress("vtxisFake", &fvecreco_isfake);
 
         Int_t nreco_totalEvt = (Int_t)herwigtree->GetEntries();
         cout << "There is a total of " << nreco_totalEvt << " events." << endl;
@@ -896,7 +900,7 @@ void track_selection_redo()
 
                             //if (freco_vtxxysize <= vtxxysize && freco_vtxzsize <= vtxzsize)
                             //{
-                                if (nreco_numberofvtxzBS == vtx_number_cut)
+                                if (nreco_numberofvtxzBS == vtx_number_cut && (*fvecreco_isfake)[0] == 0)
                                 {
                                     reco_vtxzposn->Fill((*fvecreco_vtxzBS)[vtxnumber]);
                                     ++freco_numselectedvtxz;
@@ -1209,7 +1213,7 @@ void track_selection_redo()
         reco_pt_histo->Scale(1/freco_trk);
         reco_pt_histo->Draw();*/
         freco_totalevt = freco_evt;
-    }
+    //}
 
     TFile data_reco ("Histos/data_reco.root", "recreate");
     TCanvas *data_reco_canvas = new TCanvas;
