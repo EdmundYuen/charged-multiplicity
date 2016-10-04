@@ -81,8 +81,8 @@ void histo_plotting()
     legend_eta->SetFillStyle(0);
     legend_eta->SetBorderSize(0);
     legend_eta->SetTextSize(0.02);
-    legend_eta->AddEntry(data_eta_histo, "Uncorrected Data #eta", "pe");
-    legend_eta->AddEntry(herwig_eta_histo, "Herwig #eta", "l");
+    legend_eta->AddEntry(data_eta_histo, "Uncorrected Data", "pe");
+    legend_eta->AddEntry(herwig_eta_histo, "Herwig", "l");
     legend_eta->Draw();
 
     eta_canvas->Update();
@@ -126,8 +126,8 @@ void histo_plotting()
     leg_phi->SetFillStyle(0);
     leg_phi->SetBorderSize(0);
     leg_phi->SetTextSize(0.02);
-    leg_phi->AddEntry(data_phi_histo, "Uncorrected Data #phi", "pe");
-    leg_phi->AddEntry(herwig_phi_histo, "Herwig #phi", "l");
+    leg_phi->AddEntry(data_phi_histo, "Uncorrected Data", "pe");
+    leg_phi->AddEntry(herwig_phi_histo, "Herwig", "l");
     leg_phi->Draw();
 
     phi_canvas->Update();
@@ -169,8 +169,8 @@ void histo_plotting()
     leg_pt->SetFillStyle(0);
     leg_pt->SetBorderSize(0);
     leg_pt->SetTextSize(0.02);
-    leg_pt->AddEntry(data_pt_histo, "Uncorrected Data p_{T}", "pe");
-    leg_pt->AddEntry(herwig_pt_histo, "Herwig p_{T}", "l");
+    leg_pt->AddEntry(data_pt_histo, "Uncorrected Data", "pe");
+    leg_pt->AddEntry(herwig_pt_histo, "Herwig", "l");
     leg_pt->Draw();
 
     pt_canvas->Update();
@@ -217,7 +217,7 @@ void histo_plotting()
     leg_multiplicity->SetBorderSize(0);
     leg_multiplicity->SetTextSize(0.02);
     leg_multiplicity->AddEntry(data_multiplicity, "Uncorrected Data", "pe");
-    leg_multiplicity->AddEntry(herwig_multiplicity, "Herwig" "l");
+    leg_multiplicity->AddEntry(herwig_multiplicity, "Herwig", "l");
     leg_multiplicity->Draw();
 
     multiplicity_canvas->Update();
@@ -225,9 +225,58 @@ void histo_plotting()
 
     //============================================= d0/sigmad0 ===============================================================
 
-    TH1F *data_d0_sigmad0run1 = (TH1F*)data_plot->Get("data_d0_sigmad0calcrun1");
+    TH1F *data_d0_sigmad0 = (TH1F*)data_plot->Get("data_dz_sigmadz");
+    TH1F *herwig_d0_sigmad0 = (TH1F*)herwig_plot->Get("reco_d0_sigmad0");
+    TCanvas *d0_sigmad0_canvas = new TCanvas ("d0_sigmad0_canvas", "d0/sigma0 Working Plot", 2);
+    TLegend *leg_d0_sigmad0 = new TLegend (0.7, 0.7, 0.9, 0.9);
+
+    d0_sigmad0_canvas->cd();
+    gPad->SetLogy();
+    cout << "Getting data d0/sigmad0" << endl;
+    data_d0_sigmad0->SetTitle("Ongoing Analysis #sqrt{s} = 13TeV");
+    data_d0_sigmad0->GetXaxis()->SetLabelSize(0.02);
+    data_d0_sigmad0->GetXaxis()->SetRangeUser(-200, 200);
+    data_d0_sigmad0->GetXaxis()->SetTitle("d_{0}/#sigma_{0}");
+    data_d0_sigmad0->GetYaxis()->SetTitleOffset(1.3);
+    data_d0_sigmad0->GetYaxis()->SetTitleSize(0.03);
+    data_d0_sigmad0->GetYaxis()->SetLabelOffset(0.001);
+    data_d0_sigmad0->GetYaxis()->SetLabelSize(0.02);
+    data_d0_sigmad0->GetYaxis()->SetTitle("#frac{1}{N_{trk}} #frac{d_{0}}{#sigma_{0}}");
+    data_d0_sigmad0->SetLineStyle(0);
+    data_d0_sigmad0->SetLineColorAlpha(kBlack,1);
+    data_d0_sigmad0->SetMarkerStyle(20);
+    data_d0_sigmad0->SetMarkerColor(kBlack);
+    data_d0_sigmad0->Draw("E1");
+
+    cout << "Getting Herwig d0/sigmad0" << endl;
+    herwig_d0_sigmad0->SetTitle("Ongoing Analysis #sqrt{s} = 13TeV");
+    herwig_d0_sigmad0->SetLineWidth(3);
+    herwig_d0_sigmad0->GetXaxis()->SetLabelSize(0.02);
+    herwig_d0_sigmad0->GetXaxis()->SetTitle("d_{0}/#sigma_{0}");
+    herwig_d0_sigmad0->GetYaxis()->SetTitleOffset(1.3);
+    herwig_d0_sigmad0->GetYaxis()->SetTitleSize(0.03);
+    herwig_d0_sigmad0->GetYaxis()->SetLabelOffset(0.001);
+    herwig_d0_sigmad0->GetYaxis()->SetLabelSize(0.02);
+    herwig_d0_sigmad0->GetYaxis()->SetTitle("#frac{1}{N_{trk}} #frac{d_{0}}{#sigma_{0}}");
+    herwig_d0_sigmad0->SetLineColorAlpha(kRed,0.8);
+    herwig_d0_sigmad0->Draw("SAME HIST");
+
+    leg_d0_sigmad0->SetFillColor(0);
+    leg_d0_sigmad0->SetFillStyle(0);
+    leg_d0_sigmad0->SetBorderSize(0);
+    leg_d0_sigmad0->SetTextSize(0.02);
+    leg_d0_sigmad0->AddEntry(data_d0_sigmad0, "Uncorrected Data", "pe");
+    leg_d0_sigmad0->AddEntry(herwig_d0_sigmad0, "Herwig", "l");
+    leg_d0_sigmad0->Draw();
+
+    d0_sigmad0_canvas->Update();
+    d0_sigmad0_canvas->SaveAs("d0_sigmad0.png");
+
+    //============================================= d0/sigmad0 Run 1 ===============================================================
+
+    /*TH1F *data_d0_sigmad0run1 = (TH1F*)data_plot->Get("data_d0_sigmad0calcrun1");
     TH1F *herwig_d0_sigmad0run1 = (TH1F*)herwig_plot->Get("reco_d0_sigmad0calcrun1");
-    TCanvas *d0_sigmad0run1_canvas = new TCanvas ("d0_sigmad0 canvas", "d0/sigma0 Working Plot", 2);
+    TCanvas *d0_sigmad0run1_canvas = new TCanvas ("d0_sigmad0run1_canvas", "d0/sigma0 Working Plot", 2);
     TLegend *leg_d0_sigmad0run1 = new TLegend (0.7, 0.7, 0.9, 0.9);
 
     d0_sigmad0run1_canvas->cd();
@@ -266,15 +315,64 @@ void histo_plotting()
     leg_d0_sigmad0run1->SetBorderSize(0);
     leg_d0_sigmad0run1->SetTextSize(0.02);
     leg_d0_sigmad0run1->AddEntry(data_d0_sigmad0run1, "Uncorrected Data", "pe");
-    leg_d0_sigmad0run1->AddEntry(herwig_d0_sigmad0run1, "Herwig" "l");
+    leg_d0_sigmad0run1->AddEntry(herwig_d0_sigmad0run1, "Herwig", "l");
     leg_d0_sigmad0run1->Draw();
 
     d0_sigmad0run1_canvas->Update();
-    d0_sigmad0run1_canvas->SaveAs("d0_sigmad0.png");
+    d0_sigmad0run1_canvas->SaveAs("d0_sigmad0run1.png");*/
 
-     //============================================= dz/sigmadz ===============================================================
+    //============================================= dz/sigmadz ===============================================================
 
-    TH1F *data_dz_sigmadzrun1 = (TH1F*)data_plot->Get("data_dz_sigmadz run 1");
+    TH1F *data_dz_sigmadz = (TH1F*)data_plot->Get("data_dz_sigmadz");
+    TH1F *herwig_dz_sigmadz = (TH1F*)herwig_plot->Get("reco_dz_sigmadz");
+    TCanvas *dz_sigmadz_canvas = new TCanvas ("dz_sigmadz_canvas", "dz_sigmaz Working Plot", 2);
+    TLegend *leg_dz_sigmadz = new TLegend (0.6, 0.6, 0.8, 0.8);
+
+    dz_sigmadz_canvas->cd();
+    gPad->SetLogy();
+    cout << "Getting data dz/sigmadz" << endl;
+    data_dz_sigmadz->SetTitle("Ongoing Analysis #sqrt{s} = 13TeV");
+    data_dz_sigmadz->GetXaxis()->SetLabelSize(0.02);
+    data_dz_sigmadz->GetXaxis()->SetRangeUser(-200, 200);
+    data_dz_sigmadz->GetXaxis()->SetTitle("d_z/#sigma_z");
+    data_dz_sigmadz->GetYaxis()->SetTitleOffset(1.3);
+    data_dz_sigmadz->GetYaxis()->SetTitleSize(0.03);
+    data_dz_sigmadz->GetYaxis()->SetLabelOffset(0.001);
+    data_dz_sigmadz->GetYaxis()->SetLabelSize(0.02);
+    data_dz_sigmadz->GetYaxis()->SetTitle("#frac{1}{N_{trk}} #frac{d_{z}}{#sigma_{z}}");
+    data_dz_sigmadz->SetLineStyle(0);
+    data_dz_sigmadz->SetLineColorAlpha(kBlack,1);
+    data_dz_sigmadz->SetMarkerStyle(20);
+    data_dz_sigmadz->SetMarkerColor(kBlack);
+    data_dz_sigmadz->Draw("E1");
+
+    cout << "Getting Herwig d0/sigmad0" << endl;
+    herwig_dz_sigmadz->SetTitle("Ongoing Analysis #sqrt{s} = 13TeV");
+    herwig_dz_sigmadz->SetLineWidth(3);
+    herwig_dz_sigmadz->GetXaxis()->SetLabelSize(0.02);
+    herwig_dz_sigmadz->GetXaxis()->SetTitle("d_z/#sigma_z");
+    herwig_dz_sigmadz->GetYaxis()->SetTitleOffset(1.3);
+    herwig_dz_sigmadz->GetYaxis()->SetTitleSize(0.03);
+    herwig_dz_sigmadz->GetYaxis()->SetLabelOffset(0.001);
+    herwig_dz_sigmadz->GetYaxis()->SetLabelSize(0.02);
+    herwig_dz_sigmadz->GetYaxis()->SetTitle("#frac{1}{N_{trk}} #frac{d_{z}}{#sigma_{z}}");
+    herwig_dz_sigmadz->SetLineColorAlpha(kRed,0.8);
+    herwig_dz_sigmadz->Draw("SAME HIST");
+
+    leg_dz_sigmadz->SetFillColor(0);
+    leg_dz_sigmadz->SetFillStyle(0);
+    leg_dz_sigmadz->SetBorderSize(0);
+    leg_dz_sigmadz->SetTextSize(0.02);
+    leg_dz_sigmadz->AddEntry(data_dz_sigmadz, "Uncorrected Data", "pe");
+    leg_dz_sigmadz->AddEntry(herwig_dz_sigmadz, "Herwig", "l");
+    leg_dz_sigmadz->Draw();
+
+    dz_sigmadz_canvas->Update();
+    dz_sigmadz_canvas->SaveAs("dz_sigmadz.png");
+
+     //============================================= dz/sigmadz Run 1 ===============================================================
+
+    /*TH1F *data_dz_sigmadzrun1 = (TH1F*)data_plot->Get("data_dz_sigmadz run 1");
     TH1F *herwig_dz_sigmadzrun1 = (TH1F*)herwig_plot->Get("reco_dz_sigmadz run 1");
     TCanvas *dz_sigmadzrun1_canvas = new TCanvas ("dz_sigmadz canvas", "dz_sigmaz Working Plot", 2);
     TLegend *leg_dz_sigmadzrun1 = new TLegend (0.6, 0.6, 0.8, 0.8);
@@ -315,11 +413,11 @@ void histo_plotting()
     leg_dz_sigmadzrun1->SetBorderSize(0);
     leg_dz_sigmadzrun1->SetTextSize(0.02);
     leg_dz_sigmadzrun1->AddEntry(data_dz_sigmadzrun1, "Uncorrected Data", "pe");
-    leg_dz_sigmadzrun1->AddEntry(herwig_dz_sigmadzrun1, "Herwig" "l");
+    leg_dz_sigmadzrun1->AddEntry(herwig_dz_sigmadzrun1, "Herwig", "l");
     leg_dz_sigmadzrun1->Draw();
 
     dz_sigmadzrun1_canvas->Update();
-    dz_sigmadzrun1_canvas->SaveAs("dz_sigmadz.png");
+    dz_sigmadzrun1_canvas->SaveAs("dz_sigmadz.png");*/
 
     //============================================= sigmapt/pt ===============================================================
 
@@ -362,7 +460,7 @@ void histo_plotting()
     leg_sigmapt_pt->SetBorderSize(0);
     leg_sigmapt_pt->SetTextSize(0.02);
     leg_sigmapt_pt->AddEntry(data_sigmapt_pt, "Uncorrected Data", "pe");
-    leg_sigmapt_pt->AddEntry(herwig_sigmapt_pt, "Herwig" "l");
+    leg_sigmapt_pt->AddEntry(herwig_sigmapt_pt, "Herwig", "l");
     leg_sigmapt_pt->Draw();
 
     sigmapt_pt_canvas->Update();

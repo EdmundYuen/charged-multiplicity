@@ -128,6 +128,9 @@ void track_selection_redo()
         vector<int> *nvecdata_validhits = 0;
         vector<int> *nvecdata_isfake = 0;
         vector<float> *fvecdata_trackschi2n = 0;
+        vector<float> *fvecdata_trkx = 0;
+        vector<float> *fvecdata_trky = 0;
+        vector<float> *fvecdata_trkz = 0;
 
     //============================================== Histos for pT, eta, phi ==============================================================
 
@@ -139,7 +142,7 @@ void track_selection_redo()
         TH1F *data_dzleaf = new TH1F ("data_dz", "data dz", 400, -10, 10);
         TH1F *data_sigmadzcalc = new TH1F ("data_sigmadzcalc", "data #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
         TH1F *data_sigmadzrun1 = new TH1F ("data_sigmadzrun1", "data #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
-        TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
+        TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 1600, -200, 200);
         TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
         TH1F *data_dz_sigmadzrun1 = new TH1F ("data_dz_sigmadz run 1", "data d_{z}/#sigma_{z} run 1", 160, -20, 20);
         //TH1F *data_dz_sigmadzcalcb4cut = new TH1F ("data_dz_sigmadzcalcb4cut", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
@@ -150,7 +153,7 @@ void track_selection_redo()
         TH1F *data_sigmad0calc = new TH1F ("data_sigmad0calc", "data #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
         TH1F *data_sigmad0run1 = new TH1F ("data_sigmad0run1", "data #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
 
-        TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
+        TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 1600, -200, 200); //both leaf values
         TH1F *data_d0_sigmad0run1 = new TH1F ("data_d0_sigmad0calcrun1", "data d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
         TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
         //TH1F *data_d0_sigmad0calcb4cut = new TH1F ("data_d0_sigmad0calcb4cut", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
@@ -173,26 +176,27 @@ void track_selection_redo()
 
     //=========================== Retrieve ROOT file============================
 
-        vector<TString> *datafiles = new vector<TString>();
+        /*vector<TString> *datafiles = new vector<TString>();
         cout << "Getting list of files..." << endl;
-        datafiles = getListOfFiles("filelistdata.txt");
-        cout << "File list stored" << endl;
+        //datafiles = getListOfFiles("filelistdata.txt");
+        datafiles = getListOfFiles("filelistdatatest.txt");
+        cout << "File list stored" << endl;*/
 
         TFile *datafile;
         TTree *datatree;
     //while (getline(filedata, datastr))
-    for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
-    {
+    //for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
+    //{
         //cout << "Opening new file " << *itlistdatafiles << endl;
         //TString Tdatastr(datastr);
-        //datafile = TFile::Open("tree1.root", "READ");
-        //TTree *datatree = (TTree*)datafile->Get("UETree/data");
+        datafile = TFile::Open("tree1.root", "READ");
+        datatree = (TTree*)datafile->Get("UETree/data");
         //datafile = new TFile(*itlistdatafiles, "READ");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
-        datafile = TFile::Open(*itlistdatafiles, "READ");
-        cout << "Opened " << *itlistdatafiles << endl;
-        datatree = (TTree*)datafile->Get("UETree/data");
+        //datafile = TFile::Open(*itlistdatafiles, "READ");
+        //cout << "Opened " << *itlistdatafiles << endl;
+        //datatree = (TTree*)datafile->Get("UETree/data");
         cout<< "Congratulations you have succeeded in looping over the damn data files!\n";
     //============================================== Assignment of TTree Branches ====================================================
 
@@ -218,6 +222,9 @@ void track_selection_redo()
         datatree->SetBranchAddress("recoTracksnValidHits", &nvecdata_validhits);
         datatree->SetBranchAddress("recoTrackschi2n", &fvecdata_trackschi2n);
         datatree->SetBranchAddress("vtxisFake", &nvecdata_isfake);
+        datatree->SetBranchAddress("recoTracksvx", &fvecdata_trkx);
+        datatree->SetBranchAddress("recoTracksvy", &fvecdata_trky);
+        datatree->SetBranchAddress("recoTracksvz", &fvecdata_trkz);
 
     //============================================== End of Assignment TTree Branches ====================================================
 
@@ -330,21 +337,25 @@ void track_selection_redo()
 
                         //======================================= dz ===================================================
 
-                                    fdata_dz = (*fvecdata_dz)[t];
+                                    //fdata_dz = (*fvecdata_dz)[t];
+                                    fdata_dz = ((*fvecdata_trkz)[t] - (*fvecdata_vtxz)[t]) - (((*fvecdata_trkx)[t] - (*fvecdata_vtxx)[t])*data_vec.Px() + ((*fvecdata_trky)[t] - (*fvecdata_vtxy)[t])*data_vec.Py())/data_vec.Pt()*(data_vec.Pz()/data_vec.Pt());//WY
                                     data_dzleaf->Fill((*fvecdata_dz)[t]);
-                                    fdata_sigmadz = sqrt(pow(((*fvecdata_dzerr)[t]), 2) + pow(fdata_wz, 2));
 
-                                    fdata_dz_sigmadz = ((*fvecdata_dz)[t])/((*fvecdata_dzerr)[t]); //leaf
-                                    fdata_dz_sigmadzcalc = ((fdata_dz)/sqrt(pow(((*fvecdata_dzerr)[t]),2)+pow((*fvecdata_vtxzerr)[t],2))); //WY
+                                    fdata_sigmadz = sqrt(pow(((*fvecdata_dzerr)[t]), 2) + pow(fdata_wz, 2));
+                                    //fdata_dz_sigmadz = ((*fvecdata_dz)[t])/((*fvecdata_dzerr)[t]); //leaf
+                                    fdata_dz_sigmadz = fdata_dz /((*fvecdata_dzerr)[t]);
+                                    //fdata_dz_sigmadzcalc = ((fdata_dz)/sqrt(pow(((*fvecdata_dzerr)[t]),2)+pow((*fvecdata_vtxzerr)[t],2))); //WY
                                     fdata_dz_sigmadzrun1 = ((fdata_dz) / (fdata_sigmadz)); //run 1 formula
 
                         //======================================= d0 ===================================================
 
-                                    fdata_d0 = (*fvecdata_d0)[t];
+                                    //fdata_d0 = (*fvecdata_d0)[t];
+                                    fdata_d0 = (-((*fvecdata_trkx)[t] - (*fvecdata_vtxx)[t])*data_vec.Py() + ((*fvecdata_trky)[t] - (*fvecdata_vtxy)[t])*data_vec.Px())/data_vec.Pt(); //WY
                                     fdata_sigmad0run1 = sqrt(pow(((*fvecdata_d0err)[t]), 2) + (fdata_wx)*(fdata_wy));
                                     fdata_sigmad0calc = sqrt(pow(((*fvecdata_d0err)[t]),2)+pow((*fvecdata_vtxxerr)[t],2)+pow((*fvecdata_vtxyerr)[t],2)); //WY
 
-                                    fdata_d0_sigmad0 = ((*fvecdata_d0)[t])/((*fvecdata_d0err)[t]); //both leaf values
+                                    //fdata_d0_sigmad0 = ((*fvecdata_d0)[t])/((*fvecdata_d0err)[t]); //both leaf values
+                                    fdata_d0_sigmad0 = fdata_d0/((*fvecdata_d0err)[t]);
                                     fdata_d0_sigmad0run1 = (((*fvecdata_d0)[t]) / (fdata_sigmad0run1)); //run 1 formula
                                     fdata_d0_sigmad0calc = (((*fvecdata_d0)[t]) / (fdata_sigmad0calc)); //with sigmad0 from WY
 
@@ -438,7 +449,7 @@ void track_selection_redo()
         }
     //========================================================= End of Evt Loop ================================================================
 
-    }
+    //}
 
     //========================================================= End of File Loop ================================================================
         cout << "Before plotting." << endl;
@@ -712,6 +723,9 @@ void track_selection_redo()
         vector<int> *nvecreco_validhits = 0;
         vector<float> *fvecreco_trackschi2n = 0;
         vector<int> *fvecreco_isfake = 0;
+        vector<float> *fvecreco_trkx = 0;
+        vector<float> *fvecreco_trky = 0;
+        vector<float> *fvecreco_trkz = 0;
 
     //============================================== Histos for pT, eta, phi ==============================================================
 
@@ -723,7 +737,7 @@ void track_selection_redo()
         TH1F *reco_dzleaf = new TH1F ("reco_dz", "reco dz", 400, -10, 10);
         TH1F *reco_sigmadzcalc = new TH1F ("reco_sigmadzcalc", "reco #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
         TH1F *reco_sigmadzrun1 = new TH1F ("reco_sigmadzrun1", "reco #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
-        TH1F *reco_dz_sigmadz = new TH1F ("reco_dz_sigmadz", "reco d_{z}/#sigma_{z}", 160, -20, 20);
+        TH1F *reco_dz_sigmadz = new TH1F ("reco_dz_sigmadz", "reco d_{z}/#sigma_{z}", 1600, -200, 200);
         TH1F *reco_dz_sigmadzcalc = new TH1F ("reco_dz_sigmadzcalc", "reco d_{z}/#sigma_{z} calc", 160, -20, 20);
         TH1F *reco_dz_sigmadzrun1 = new TH1F ("reco_dz_sigmadz run 1", "reco d_{z}/#sigma_{z} run 1", 160, -20, 20);
         //TH1F *reco_dz_sigmadzcalcb4cut = new TH1F ("reco_dz_sigmadzcalcb4cut", "reco d_{z}/#sigma_{z} calc", 160, -20, 20);
@@ -734,7 +748,7 @@ void track_selection_redo()
         TH1F *reco_sigmad0calc = new TH1F ("reco_sigmad0calc", "reco #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
         TH1F *reco_sigmad0run1 = new TH1F ("reco_sigmad0run1", "reco #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
 
-        TH1F *reco_d0_sigmad0 = new TH1F ("reco_d0_sigmad0", "reco d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
+        TH1F *reco_d0_sigmad0 = new TH1F ("reco_d0_sigmad0", "reco d_{0}/#sigma_{xy}", 1600, -200, 200); //both leaf values
         TH1F *reco_d0_sigmad0run1 = new TH1F ("reco_d0_sigmad0calcrun1", "reco d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
         TH1F *reco_d0_sigmad0calc = new TH1F ("reco_d0_sigmad0calc", "reco d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
         //TH1F *reco_d0_sigmad0calcb4cut = new TH1F ("reco_d0_sigmad0calcb4cut", "reco d_{0}/#sigma_{xy} calc", 160, -20, 20);
@@ -757,10 +771,11 @@ void track_selection_redo()
 
         //=========================== Retrieve ROOT file============================
 
-        vector<TString> *herwigfiles = new vector<TString>();
+        /*vector<TString> *herwigfiles = new vector<TString>();
         cout << "Getting list of files..." << endl;
-        herwigfiles = getListOfFiles("filelistherwig.txt");
-        cout << "File list stored" << endl;
+        //herwigfiles = getListOfFiles("filelistherwig.txt");
+        herwigfiles = getListOfFiles("filelistherwigtest.txt");
+        cout << "File list stored" << endl;*/
 
         TFile *herwigfile;
         TTree *herwigtree;
@@ -768,19 +783,19 @@ void track_selection_redo()
     //========================================================= Start of Herwig File Loop ================================================================
 
     //while (getline(filedata, datastr))
-    for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
-    {
-        cout << "Opening new file " << *itlistherwigfiles << endl;
+    //for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
+    //{
+        //cout << "Opening new file " << *itlistherwigfiles << endl;
         //TString Tdatastr(datastr);
-        //TFile *datafile = TFile::Open("tree1.root", "READ");
-        //TTree *datatree = (TTree*)datafile->Get("UETree/data");
+        herwigfile = TFile::Open("treesCUETP8M1_66.root", "READ");
+        herwigtree = (TTree*)herwigfile->Get("UETree/data");
         //datafile = new TFile(*itlistdatafiles, "READ");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
-        herwigfile = TFile::Open(*itlistherwigfiles, "READ");
-        cout << "Opened " << *itlistherwigfiles << endl;
-        herwigtree = (TTree*)herwigfile->Get("UETree/data");
-        cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
+        //herwigfile = TFile::Open(*itlistherwigfiles, "READ");
+        //cout << "Opened " << *itlistherwigfiles << endl;
+        //herwigtree = (TTree*)herwigfile->Get("UETree/data");
+        //cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
 
         herwigtree->SetBranchAddress("recoTracksp4", &reco_tracks);
         herwigtree->SetBranchAddress("lumi", &nreco_lumi);
@@ -804,6 +819,9 @@ void track_selection_redo()
         herwigtree->SetBranchAddress("recoTracksnValidHits", &nvecreco_validhits);
         herwigtree->SetBranchAddress("recoTrackschi2n", &fvecreco_trackschi2n);
         herwigtree->SetBranchAddress("vtxisFake", &fvecreco_isfake);
+        herwigtree->SetBranchAddress("recoTracksvx", &fvecreco_trkx);
+        herwigtree->SetBranchAddress("recoTracksvy", &fvecreco_trky);
+        herwigtree->SetBranchAddress("recoTracksvz", &fvecreco_trkz);
 
         Int_t nreco_totalEvt = (Int_t)herwigtree->GetEntries();
         cout << "There is a total of " << nreco_totalEvt << " events." << endl;
@@ -915,21 +933,23 @@ void track_selection_redo()
 
                             //======================================= dz ===================================================
 
-                                        freco_dz = (*fvecreco_dz)[t];
+                                        //freco_dz = (*fvecreco_dz)[t];
+                                        freco_dz = ((*fvecreco_trkz)[t] - (*fvecreco_vtxz)[t]) - (((*fvecreco_trkx)[t] - (*fvecreco_vtxx)[t])*reco_vec.Px() + ((*fvecreco_trky)[t] - (*fvecreco_vtxy)[t])*reco_vec.Py())/reco_vec.Pt()*(reco_vec.Pz()/reco_vec.Pt());//WY
                                         reco_dzleaf->Fill((*fvecreco_dz)[t]);
                                         freco_sigmadz = sqrt(pow(((*fvecreco_dzerr)[t]), 2) + pow(freco_wz, 2));
 
-                                        freco_dz_sigmadz = ((*fvecreco_dz)[t])/((*fvecreco_dzerr)[t]); //leaf
+                                        freco_dz_sigmadz = (freco_dz)/((*fvecreco_dzerr)[t]); //leaf
                                         freco_dz_sigmadzcalc = ((freco_dz)/sqrt(pow(((*fvecreco_dzerr)[t]),2)+pow((*fvecreco_vtxzerr)[t],2))); //WY
                                         freco_dz_sigmadzrun1 = ((freco_dz) / (freco_sigmadz)); //run 1 formula
 
                             //======================================= d0 ===================================================
 
-                                        freco_d0 = (*fvecreco_d0)[t];
+                                        //freco_d0 = (*fvecreco_d0)[t];
+                                        freco_d0 = (-((*fvecreco_trkx)[t] - (*fvecreco_vtxx)[t])*reco_vec.Py() + ((*fvecreco_trky)[t] - (*fvecreco_vtxy)[t])*reco_vec.Px())/reco_vec.Pt();//WY
                                         freco_sigmad0run1 = sqrt(pow(((*fvecreco_d0err)[t]), 2) + (freco_wx)*(freco_wy));
                                         freco_sigmad0calc = sqrt(pow(((*fvecreco_d0err)[t]),2)+pow((*fvecreco_vtxxerr)[t],2)+pow((*fvecreco_vtxyerr)[t],2)); //WY
 
-                                        freco_d0_sigmad0 = ((*fvecreco_d0)[t])/((*fvecreco_d0err)[t]); //both leaf values
+                                        freco_d0_sigmad0 = (freco_d0)/((*fvecreco_d0err)[t]); //both leaf values
                                         freco_d0_sigmad0run1 = (((*fvecreco_d0)[t]) / (freco_sigmad0run1)); //run 1 formula
                                         freco_d0_sigmad0calc = (((*fvecreco_d0)[t]) / (freco_sigmad0calc)); //with sigmad0 from WY
 
@@ -1025,7 +1045,7 @@ void track_selection_redo()
         }
     //========================================================= End of Herwig Evt Loop ================================================================
 
-    }
+    //}
 
     //========================================================= End of Herwig File Loop ================================================================
         cout << "Before plotting." << endl;
@@ -1103,7 +1123,7 @@ void track_selection_redo()
         reco_sigmad0run1->SetLineColor(4);
         reco_sigmad0run1->Write();
 
-        reco_d0_sigmad0->SetMinimum(1E-5); //leaf values
+        reco_d0_sigmad0->SetMinimum(1E-5);
         reco_d0_sigmad0->SetMaximum(0.1);
         reco_d0_sigmad0->Scale(1/freco_trkd0);
         reco_d0_sigmad0->GetXaxis()->SetTitle("d_{0}/#sigma_{0} leaf values");
@@ -1215,7 +1235,7 @@ void track_selection_redo()
         freco_totalevt = freco_evt;
     //}
 
-    TFile data_reco ("Histos/data_reco.root", "recreate");
+    /*TFile data_reco ("Histos/data_reco.root", "recreate");
     TCanvas *data_reco_canvas = new TCanvas;
     //data_reco_canvas->Divide(2,1);
     TPad *data_reco_pad = new TPad ("data_reco_pad", "Data and Reco Pad", 0, 0.3, 1.0, 1.0);
@@ -1285,7 +1305,7 @@ void track_selection_redo()
     divide_pad->Update();
 
     data_reco_canvas->Draw();
-    data_reco_canvas->Write();
+    data_reco_canvas->Write();*/
 }
 
 vector<TString> *getListOfFiles(TString strfiles)
