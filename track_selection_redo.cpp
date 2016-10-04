@@ -69,7 +69,7 @@ void track_selection_redo()
 //==================================================== Data Loop ===================================================================
 
     //if ((nselect == 0) || (nselect == 2))
-    //{
+    {
 //==============================================Variables==============================================================
 
         float fdata_evt = 0;
@@ -191,16 +191,17 @@ void track_selection_redo()
         //TString Tdatastr(datastr);
         //datafile = TFile::Open("tree1.root", "READ");
         //datatree = (TTree*)datafile->Get("UETree/data");
-        datafile = new TFile(*itlistdatafiles, "READ");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
-        //datafile = TFile::Open(*itlistdatafiles, "READ");
+        datafile = TFile::Open(*itlistdatafiles, "READ");
         cout << "Opened " << *itlistdatafiles << endl;
         datatree = (TTree*)datafile->Get("UETree/data");
         cout << "Congratulations you have succeeded in looping over the damn data files!\n";
+
     //============================================== Assignment of TTree Branches ====================================================
 
         datatree->SetBranchAddress("recoTracksp4", &data_tracks);
+        cout << "Error" << endl;
         datatree->SetBranchAddress("lumi", &ndata_lumi);
         datatree->SetBranchAddress("trgZeroBias", &ndata_zerobias);
         datatree->SetBranchAddress("vtxx", &fvecdata_vtxx);
@@ -227,7 +228,7 @@ void track_selection_redo()
         datatree->SetBranchAddress("recoTracksvz", &fvecdata_trkz);
 
     //============================================== End of Assignment TTree Branches ====================================================
-
+        cout << "Set required branch address" << endl;
         Int_t ndata_totalEvt = (Int_t)datatree->GetEntries();
         cout << "There is a total of " << ndata_totalEvt << " events." << endl;
 
@@ -449,7 +450,7 @@ void track_selection_redo()
         }
     //========================================================= End of Evt Loop ================================================================
 
-    //}
+    }
 
     //========================================================= End of File Loop ================================================================
         cout << "Before plotting." << endl;
@@ -659,7 +660,7 @@ void track_selection_redo()
 //==================================================== Reco Loop ===================================================================
 
     //if ((nselect == 1) || (nselect == 2))
-    //{
+    {
         //==============================================Variables==============================================================
 
         float freco_evt = 0;
@@ -1045,7 +1046,7 @@ void track_selection_redo()
         }
     //========================================================= End of Herwig Evt Loop ================================================================
 
-    //}
+    }
 
     //========================================================= End of Herwig File Loop ================================================================
         cout << "Before plotting." << endl;
@@ -1233,7 +1234,7 @@ void track_selection_redo()
         reco_pt_histo->Scale(1/freco_trk);
         reco_pt_histo->Draw();*/
         freco_totalevt = freco_evt;
-    //}
+    }
 
     /*TFile data_reco ("Histos/data_reco.root", "recreate");
     TCanvas *data_reco_canvas = new TCanvas;
