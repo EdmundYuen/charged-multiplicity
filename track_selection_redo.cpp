@@ -305,15 +305,15 @@ void track_selection_redo()
 
                     int vtxdof = 0;
 
-                    ndata_numberofvtxxBS = fvecdata_vtxxBS->size();
-                    ndata_numberofvtxyBS = fvecdata_vtxyBS->size();
-                    ndata_numberofvtxzBS = fvecdata_vtxzBS->size();
+                    ndata_numberofvtxx = fvecdata_vtxx->size();
+                    ndata_numberofvtxy = fvecdata_vtxy->size();
+                    ndata_numberofvtxz = fvecdata_vtxz->size();
                     fdata_multiplicity = 0;
                     ++fdata_evt;
 
     //========================================================= Start of Vertex Loop ================================================================
 
-                    for (int vtxnumber = 0; vtxnumber != ndata_numberofvtxxBS; ++vtxnumber)
+                    for (int vtxnumber = 0; vtxnumber != ndata_numberofvtxx; ++vtxnumber)
                     {
                         if((*nvecdata_vtxndof)[vtxdof] > dof_cut)
                         {
@@ -322,9 +322,9 @@ void track_selection_redo()
 
                             //if (fdata_vtxxysize <= vtxxysize && fdata_vtxzsize <= vtxzsize)
                             //{
-                            if (ndata_numberofvtxzBS == vtx_number_cut && (*nvecdata_isfake)[0] == 0)
+                            if (ndata_numberofvtxz == vtx_number_cut && (*nvecdata_isfake)[0] == 0)
                             {
-                                data_vtxzposn->Fill((*fvecdata_vtxzBS)[vtxnumber]);
+                                data_vtxzposn->Fill((*fvecdata_vtxz)[vtxnumber]);
                                 ++fdata_numselectedvtxz;
 
     //========================================================= Start of Trk Loop ================================================================
@@ -902,14 +902,14 @@ void track_selection_redo()
 
                     int vtxdof = 0;
 
-                    nreco_numberofvtxxBS = fvecreco_vtxxBS->size();
-                    nreco_numberofvtxyBS = fvecreco_vtxyBS->size();
-                    nreco_numberofvtxzBS = fvecreco_vtxzBS->size();
+                    nreco_numberofvtxx = fvecreco_vtxx->size();
+                    nreco_numberofvtxy = fvecreco_vtxy->size();
+                    nreco_numberofvtxz = fvecreco_vtxz->size();
 
 
     //========================================================= Start of Vertex Loop ================================================================
 
-                    for (int vtxnumber = 0; vtxnumber != nreco_numberofvtxxBS; ++vtxnumber)
+                    for (int vtxnumber = 0; vtxnumber != nreco_numberofvtxx; ++vtxnumber)
                     {
                         if((*nvecreco_vtxndof)[vtxdof] > dof_cut)
                         {
@@ -918,9 +918,9 @@ void track_selection_redo()
 
                             //if (freco_vtxxysize <= vtxxysize && freco_vtxzsize <= vtxzsize)
                             //{
-                                if (nreco_numberofvtxzBS == vtx_number_cut && (*fvecreco_isfake)[0] == 0)
+                                if (nreco_numberofvtxz == vtx_number_cut && (*fvecreco_isfake)[0] == 0)
                                 {
-                                    reco_vtxzposn->Fill((*fvecreco_vtxzBS)[vtxnumber]);
+                                    reco_vtxzposn->Fill((*fvecreco_vtxz)[vtxnumber]);
                                     ++freco_numselectedvtxz;
 
     //========================================================= Start of Trk Loop ================================================================
