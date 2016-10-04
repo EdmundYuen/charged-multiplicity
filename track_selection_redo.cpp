@@ -142,7 +142,7 @@ void track_selection_redo()
         TH1F *data_dzleaf = new TH1F ("data_dz", "data dz", 400, -10, 10);
         TH1F *data_sigmadzcalc = new TH1F ("data_sigmadzcalc", "data #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
         TH1F *data_sigmadzrun1 = new TH1F ("data_sigmadzrun1", "data #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
-        TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 1600, -200, 200);
+        TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
         TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
         TH1F *data_dz_sigmadzrun1 = new TH1F ("data_dz_sigmadz run 1", "data d_{z}/#sigma_{z} run 1", 160, -20, 20);
         //TH1F *data_dz_sigmadzcalcb4cut = new TH1F ("data_dz_sigmadzcalcb4cut", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
@@ -153,7 +153,7 @@ void track_selection_redo()
         TH1F *data_sigmad0calc = new TH1F ("data_sigmad0calc", "data #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
         TH1F *data_sigmad0run1 = new TH1F ("data_sigmad0run1", "data #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
 
-        TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 1600, -200, 200); //both leaf values
+        TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
         TH1F *data_d0_sigmad0run1 = new TH1F ("data_d0_sigmad0calcrun1", "data d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
         TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
         //TH1F *data_d0_sigmad0calcb4cut = new TH1F ("data_d0_sigmad0calcb4cut", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
@@ -176,28 +176,28 @@ void track_selection_redo()
 
     //=========================== Retrieve ROOT file============================
 
-        /*vector<TString> *datafiles = new vector<TString>();
+        vector<TString> *datafiles = new vector<TString>();
         cout << "Getting list of files..." << endl;
         //datafiles = getListOfFiles("filelistdata.txt");
         datafiles = getListOfFiles("filelistdatatest.txt");
-        cout << "File list stored" << endl;*/
+        cout << "File list stored" << endl;
 
         TFile *datafile;
         TTree *datatree;
     //while (getline(filedata, datastr))
-    //for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
-    //{
-        //cout << "Opening new file " << *itlistdatafiles << endl;
+    for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
+    {
+        cout << "Opening new file " << *itlistdatafiles << endl;
         //TString Tdatastr(datastr);
-        datafile = TFile::Open("tree1.root", "READ");
-        datatree = (TTree*)datafile->Get("UETree/data");
-        //datafile = new TFile(*itlistdatafiles, "READ");
+        //datafile = TFile::Open("tree1.root", "READ");
+        //datatree = (TTree*)datafile->Get("UETree/data");
+        datafile = new TFile(*itlistdatafiles, "READ");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
         //datafile = TFile::Open(*itlistdatafiles, "READ");
-        //cout << "Opened " << *itlistdatafiles << endl;
-        //datatree = (TTree*)datafile->Get("UETree/data");
-        cout<< "Congratulations you have succeeded in looping over the damn data files!\n";
+        cout << "Opened " << *itlistdatafiles << endl;
+        datatree = (TTree*)datafile->Get("UETree/data");
+        cout << "Congratulations you have succeeded in looping over the damn data files!\n";
     //============================================== Assignment of TTree Branches ====================================================
 
         datatree->SetBranchAddress("recoTracksp4", &data_tracks);
@@ -654,7 +654,7 @@ void track_selection_redo()
         data_pt_histo->Scale(1/fdata_trk);
         data_pt_histo->Draw();*/
         fdata_totalevt = fdata_evt;
-    //}
+    }
 
 //==================================================== Reco Loop ===================================================================
 
@@ -737,7 +737,7 @@ void track_selection_redo()
         TH1F *reco_dzleaf = new TH1F ("reco_dz", "reco dz", 400, -10, 10);
         TH1F *reco_sigmadzcalc = new TH1F ("reco_sigmadzcalc", "reco #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
         TH1F *reco_sigmadzrun1 = new TH1F ("reco_sigmadzrun1", "reco #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
-        TH1F *reco_dz_sigmadz = new TH1F ("reco_dz_sigmadz", "reco d_{z}/#sigma_{z}", 1600, -200, 200);
+        TH1F *reco_dz_sigmadz = new TH1F ("reco_dz_sigmadz", "reco d_{z}/#sigma_{z}", 160, -20, 20);
         TH1F *reco_dz_sigmadzcalc = new TH1F ("reco_dz_sigmadzcalc", "reco d_{z}/#sigma_{z} calc", 160, -20, 20);
         TH1F *reco_dz_sigmadzrun1 = new TH1F ("reco_dz_sigmadz run 1", "reco d_{z}/#sigma_{z} run 1", 160, -20, 20);
         //TH1F *reco_dz_sigmadzcalcb4cut = new TH1F ("reco_dz_sigmadzcalcb4cut", "reco d_{z}/#sigma_{z} calc", 160, -20, 20);
@@ -748,7 +748,7 @@ void track_selection_redo()
         TH1F *reco_sigmad0calc = new TH1F ("reco_sigmad0calc", "reco #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
         TH1F *reco_sigmad0run1 = new TH1F ("reco_sigmad0run1", "reco #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
 
-        TH1F *reco_d0_sigmad0 = new TH1F ("reco_d0_sigmad0", "reco d_{0}/#sigma_{xy}", 1600, -200, 200); //both leaf values
+        TH1F *reco_d0_sigmad0 = new TH1F ("reco_d0_sigmad0", "reco d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
         TH1F *reco_d0_sigmad0run1 = new TH1F ("reco_d0_sigmad0calcrun1", "reco d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
         TH1F *reco_d0_sigmad0calc = new TH1F ("reco_d0_sigmad0calc", "reco d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
         //TH1F *reco_d0_sigmad0calcb4cut = new TH1F ("reco_d0_sigmad0calcb4cut", "reco d_{0}/#sigma_{xy} calc", 160, -20, 20);
@@ -771,11 +771,11 @@ void track_selection_redo()
 
         //=========================== Retrieve ROOT file============================
 
-        /*vector<TString> *herwigfiles = new vector<TString>();
+        vector<TString> *herwigfiles = new vector<TString>();
         cout << "Getting list of files..." << endl;
         //herwigfiles = getListOfFiles("filelistherwig.txt");
         herwigfiles = getListOfFiles("filelistherwigtest.txt");
-        cout << "File list stored" << endl;*/
+        cout << "File list stored" << endl;
 
         TFile *herwigfile;
         TTree *herwigtree;
@@ -783,19 +783,19 @@ void track_selection_redo()
     //========================================================= Start of Herwig File Loop ================================================================
 
     //while (getline(filedata, datastr))
-    //for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
-    //{
-        //cout << "Opening new file " << *itlistherwigfiles << endl;
+    for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
+    {
+        cout << "Opening new file " << *itlistherwigfiles << endl;
         //TString Tdatastr(datastr);
-        herwigfile = TFile::Open("treesCUETP8M1_66.root", "READ");
-        herwigtree = (TTree*)herwigfile->Get("UETree/data");
+        //herwigfile = TFile::Open("treesCUETP8M1_66.root", "READ");
+        //herwigtree = (TTree*)herwigfile->Get("UETree/data");
         //datafile = new TFile(*itlistdatafiles, "READ");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
-        //herwigfile = TFile::Open(*itlistherwigfiles, "READ");
-        //cout << "Opened " << *itlistherwigfiles << endl;
-        //herwigtree = (TTree*)herwigfile->Get("UETree/data");
-        //cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
+        herwigfile = TFile::Open(*itlistherwigfiles, "READ");
+        cout << "Opened " << *itlistherwigfiles << endl;
+        herwigtree = (TTree*)herwigfile->Get("UETree/data");
+        cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
 
         herwigtree->SetBranchAddress("recoTracksp4", &reco_tracks);
         herwigtree->SetBranchAddress("lumi", &nreco_lumi);
