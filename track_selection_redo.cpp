@@ -187,12 +187,14 @@ void track_selection_redo()
     //while (getline(filedata, datastr))
     for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
     {
-        cout << "Opening new file " << *itlistdatafiles << endl;
+
         //TString Tdatastr(datastr);
         //datafile = TFile::Open("tree1.root", "READ");
         //datatree = (TTree*)datafile->Get("UETree/data");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
+
+        cout << "Opening new file " << *itlistdatafiles << endl;
         datafile = TFile::Open(*itlistdatafiles, "READ");
         cout << "Opened " << *itlistdatafiles << endl;
         datatree = (TTree*)datafile->Get("UETree/data");
@@ -789,13 +791,9 @@ void track_selection_redo()
         cout << "Opening new file " << *itlistherwigfiles << endl;
         //TString Tdatastr(datastr);
         //herwigfile = TFile::Open("treesCUETP8M1_66.root", "READ");
-        //herwigtree = (TTree*)herwigfile->Get("UETree/data");
-        //datafile = new TFile(*itlistdatafiles, "READ");
-        //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
-        //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
         herwigfile = TFile::Open(*itlistherwigfiles, "READ");
-        cout << "Opened " << *itlistherwigfiles << endl;
         herwigtree = (TTree*)herwigfile->Get("UETree/data");
+        cout << "Opened " << *itlistherwigfiles << endl;
         cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
 
         herwigtree->SetBranchAddress("recoTracksp4", &reco_tracks);
