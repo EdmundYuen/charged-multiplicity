@@ -225,7 +225,7 @@ void histo_plotting()
 
     //============================================= d0/sigmad0 ===============================================================
 
-    TH1F *data_d0_sigmad0 = (TH1F*)data_plot->Get("data_dz_sigmadz");
+    TH1F *data_d0_sigmad0 = (TH1F*)data_plot->Get("data_d0_sigmad0");
     TH1F *herwig_d0_sigmad0 = (TH1F*)herwig_plot->Get("reco_d0_sigmad0");
     TCanvas *d0_sigmad0_canvas = new TCanvas ("d0_sigmad0_canvas", "d0/sigma0 Working Plot", 2);
     TLegend *leg_d0_sigmad0 = new TLegend (0.7, 0.7, 0.9, 0.9);
@@ -235,7 +235,6 @@ void histo_plotting()
     cout << "Getting data d0/sigmad0" << endl;
     data_d0_sigmad0->SetTitle("Ongoing Analysis #sqrt{s} = 13TeV");
     data_d0_sigmad0->GetXaxis()->SetLabelSize(0.02);
-    data_d0_sigmad0->GetXaxis()->SetRangeUser(-200, 200);
     data_d0_sigmad0->GetXaxis()->SetTitle("d_{0}/#sigma_{0}");
     data_d0_sigmad0->GetYaxis()->SetTitleOffset(1.3);
     data_d0_sigmad0->GetYaxis()->SetTitleSize(0.03);
@@ -333,7 +332,6 @@ void histo_plotting()
     cout << "Getting data dz/sigmadz" << endl;
     data_dz_sigmadz->SetTitle("Ongoing Analysis #sqrt{s} = 13TeV");
     data_dz_sigmadz->GetXaxis()->SetLabelSize(0.02);
-    data_dz_sigmadz->GetXaxis()->SetRangeUser(-200, 200);
     data_dz_sigmadz->GetXaxis()->SetTitle("d_z/#sigma_z");
     data_dz_sigmadz->GetYaxis()->SetTitleOffset(1.3);
     data_dz_sigmadz->GetYaxis()->SetTitleSize(0.03);
