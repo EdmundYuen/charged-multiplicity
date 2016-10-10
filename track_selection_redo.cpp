@@ -52,7 +52,6 @@ void track_selection_redo()
     const float dof_cut = 4;
     float fdata_multiplicity_norm = 0;
     float freco_multiplicity_norm = 0;
-    float freco_totalevt, fdata_totalevt;
 
     //TH1F *data_multiplicity = new TH1F("Normalized_Data_Multiplicity", "Normalized Data Multiplicity", 200, 0, 200);
     //TH1F *reco_multiplicity = new TH1F("Normalized_Reco_Multiplicity", "Normalized Reco Multiplicity", 200, 0, 200);
@@ -73,6 +72,7 @@ void track_selection_redo()
 //==============================================Variables==============================================================
 
         float fdata_evt = 0;
+        float fdata_totalevt = 0;
         float fdata_trkphi = 0;
         float fdata_trketa = 0;
         float fdata_trkd0 = 0;
@@ -143,6 +143,7 @@ void track_selection_redo()
         TH1F *data_sigmadzcalc = new TH1F ("data_sigmadzcalc", "data #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
         TH1F *data_sigmadzrun1 = new TH1F ("data_sigmadzrun1", "data #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
         TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
+	      TH1F *data_dz_sigmadz_nosigmacuts = new TH1F ("data_dz_sigmadz_nosigmacuts", "data d_{z}/#sigma_{z}", 160, -20, 20);
         TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
         TH1F *data_dz_sigmadzrun1 = new TH1F ("data_dz_sigmadz run 1", "data d_{z}/#sigma_{z} run 1", 160, -20, 20);
         //TH1F *data_dz_sigmadzcalcb4cut = new TH1F ("data_dz_sigmadzcalcb4cut", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
@@ -154,6 +155,7 @@ void track_selection_redo()
         TH1F *data_sigmad0run1 = new TH1F ("data_sigmad0run1", "data #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
 
         TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
+	      TH1F *data_d0_sigmad0_nosigmacuts = new TH1F ("data_d0_sigmad0_nosigmacuts", "data d_{0}/#sigma_{xy}", 160, -20, 20);
         TH1F *data_d0_sigmad0run1 = new TH1F ("data_d0_sigmad0calcrun1", "data d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
         TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
         //TH1F *data_d0_sigmad0calcb4cut = new TH1F ("data_d0_sigmad0calcb4cut", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
@@ -176,34 +178,32 @@ void track_selection_redo()
 
     //=========================== Retrieve ROOT file============================
 
-        vector<TString> *datafiles = new vector<TString>();
+        /*vector<TString> *datafiles = new vector<TString>();
         cout << "Getting list of files..." << endl;
-        //datafiles = getListOfFiles("filelistdata.txt");
-        datafiles = getListOfFiles("filelistdatatest.txt");
-        cout << "File list stored" << endl;
+        datafiles = getListOfFiles("filelistdata.txt");
+        //datafiles = getListOfFiles("filelistdatatest.txt");
+        cout << "File list stored" << end*/
 
         TFile *datafile;
         TTree *datatree;
     //while (getline(filedata, datastr))
-    for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
+    //for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
     {
 
         //TString Tdatastr(datastr);
-        //datafile = TFile::Open("tree1.root", "READ");
-        //datatree = (TTree*)datafile->Get("UETree/data");
+        datafile = TFile::Open("tree1.root", "READ");
         //datafile = TFile::Open("root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root", "READ");
         //datafile = new TFile(*itlistdatafiles, "READ"); //fail "no matching function for call to 'Open'"
 
-        cout << "Opening new file " << *itlistdatafiles << endl;
-        datafile = TFile::Open(*itlistdatafiles, "READ");
-        cout << "Opened " << *itlistdatafiles << endl;
+        //cout << "Opening new file " << *itlistdatafiles << endl;
+        //datafile = TFile::Open(*itlistdatafiles, "READ");
+        //cout << "Opened " << *itlistdatafiles << endl;
         datatree = (TTree*)datafile->Get("UETree/data");
         cout << "Congratulations you have succeeded in looping over the damn data files!\n";
 
     //============================================== Assignment of TTree Branches ====================================================
 
         datatree->SetBranchAddress("recoTracksp4", &data_tracks);
-        cout << "Error" << endl;
         datatree->SetBranchAddress("lumi", &ndata_lumi);
         datatree->SetBranchAddress("trgZeroBias", &ndata_zerobias);
         datatree->SetBranchAddress("vtxx", &fvecdata_vtxx);
@@ -234,7 +234,7 @@ void track_selection_redo()
         Int_t ndata_totalEvt = (Int_t)datatree->GetEntries();
         cout << "There is a total of " << ndata_totalEvt << " events." << endl;
 
-        for (int ev = 0; ev < ndata_totalEvt; ++ev)
+        /*for (int ev = 0; ev < ndata_totalEvt; ++ev)
         {
             datatree->GetEntry(ev);
 
@@ -291,7 +291,7 @@ void track_selection_redo()
         cout << "Largest BS z-coordinate is " << fdata_vtxzBSupper << endl;
         fdata_wx = sqrt((fdata_sqvtxx) / (fdata_sqvtxxnumber)); //RMS(?) of position of vtx x-coordinate. Averaged over number of vtx
         fdata_wy = sqrt((fdata_sqvtxy) / (fdata_sqvtxynumber)); //RMS(?) of position of vtx y-coordinate Averaged over number of vtx
-        fdata_wz = sqrt((fdata_sqvtxz) / (fdata_sqvtxznumber)); //
+        fdata_wz = sqrt((fdata_sqvtxz) / (fdata_sqvtxznumber));*/ //
 
     //========================================================= Start of Evt Loop ================================================================
 
@@ -299,6 +299,7 @@ void track_selection_redo()
         {
             datatree->GetEntry(i);
             //cout << "At entry " << i << endl;
+            ++fdata_totalevt;
 
             if (ndata_lumi >= lumi_cut)
             {
@@ -312,7 +313,6 @@ void track_selection_redo()
                     ndata_numberofvtxy = fvecdata_vtxy->size();
                     ndata_numberofvtxz = fvecdata_vtxz->size();
                     fdata_multiplicity = 0;
-                    ++fdata_evt;
 
     //========================================================= Start of Vertex Loop ================================================================
 
@@ -324,7 +324,6 @@ void track_selection_redo()
                             fdata_vtxzsize = fabs(((*fvecdata_vtxz)[vtxnumber]) - ((*fvecdata_vtxzBS)[vtxnumber]));
 
                             //if (fdata_vtxxysize <= vtxxysize && fdata_vtxzsize <= vtxzsize)
-                            //{
                             if (ndata_numberofvtxz == vtx_number_cut && (*nvecdata_isfake)[0] == 0)
                             {
                                 data_vtxzposn->Fill((*fvecdata_vtxz)[vtxnumber]);
@@ -335,8 +334,6 @@ void track_selection_redo()
                                 for (int t = 0; t != ndata_totaltrk; ++t)
                                 {
                                     XYZTVector data_vec = (*data_tracks)[t];
-                                    //cout << "Within track " << endl;
-                                    //using formula from paper of run 1 result, dz is leaf value
 
                         //======================================= dz ===================================================
 
@@ -383,7 +380,8 @@ void track_selection_redo()
 
                                         //if (data_vec.Pt() >= pt_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut && fabs(fdata_dz_sigmadzrun1 < dz_dzErr_cut))
                                         //if ((data_vec.Pt() >= pt_cut) && (fabs(fdata_sigmapt_pt) < ptErr_pt_cut))
-                                        if (data_vec.Pt() >= pt_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
+                                        //if (data_vec.Pt() >= pt_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
+                                        if (data_vec.Pt() >= pt_cut)
                                         {
                                             data_eta_histo->Fill(data_vec.Eta());
                                             ++fdata_trketa;
@@ -405,7 +403,10 @@ void track_selection_redo()
 
                                             //if (fabs(fdata_d0_sigmad0calc) < d0_d0Err_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut && fdata_d0 < fmin(0.05, fdata_sigmad0calc)))
                                             //if (fabs(fdata_d0_sigmad0calc) < d0_d0Err_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
-                                            if (fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
+                                            data_dz_sigmadz_nosigmacuts->Fill(fdata_dz_sigmadz);
+					    data_d0_sigmad0_nosigmacuts->Fill(fdata_d0_sigmad0);
+                                            //if ((fabs(fdata_sigmapt_pt) < ptErr_pt_cut) && (fabs(fdata_d0_sigmad0) < d0_d0Err_cut))
+                                            if ((fabs(fdata_sigmapt_pt) < ptErr_pt_cut))
                                             {
                                                 data_dz_sigmadz->Fill(fdata_dz_sigmadz);
                                                 data_dz_sigmadzcalc->Fill(fdata_dz_sigmadzcalc);
@@ -414,6 +415,7 @@ void track_selection_redo()
                                             }
 
                                             //if (fabs(fdata_dz_sigmadzrun1) < dz_dzErr_cut && fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
+                                            //if ((fabs(fdata_sigmapt_pt) < ptErr_pt_cut) && (fabs(fdata_d0_sigmad0) < d0_d0Err_cut))
                                             if (fabs(fdata_sigmapt_pt) < ptErr_pt_cut)
                                             {
                                                 data_d0leaf->Fill((*fvecdata_d0)[t]);
@@ -430,39 +432,31 @@ void track_selection_redo()
                                                 ++fdata_multiplicity;
                                                 fdata_multiplicity_norm += fdata_multiplicity;
                                             }
-
-                                            /*if ((fabs(fdata_dz_sigmadz) < dz_dzErr_cut) && (fabs(fdata_d0_sigmad0run1) < d0_d0Err_cut))
-                                            {
-                                                data_sigmapt_pt->Fill(fdata_sigmapt_pt);
-                                                ++fdata_trkdpt;
-                                            }*/
-
                                         }
                                     }
-                                }
-    //========================================================= End of Trk Loop ================================================================
+                                }    //========================================================= End of Trk Loop ================================================================
+                                data_multiplicity->Fill(fdata_multiplicity);
+                                ++fdata_evt;
                             }
-                            //}
                         }
-                    }
-    //========================================================= End of Vertex Loop ================================================================
+                    }    //========================================================= End of Vertex Loop ================================================================
                 }
-                data_multiplicity->Fill(fdata_multiplicity);
             }
-        }
-    //========================================================= End of Evt Loop ================================================================
+        }    //========================================================= End of Evt Loop ================================================================
 
-    }
+    }    //========================================================= End of File Loop ================================================================
 
-    //========================================================= End of File Loop ================================================================
-        cout << "Before plotting." << endl;
+        /*cout << "Before plotting." << endl;
         cout << "wx is " << fdata_wx << endl;
         cout << "wy is " << fdata_wy << endl;
         cout << "wz is " << fdata_wz << endl;
         cout << "cut on d0 is " << sqrt(0.0025 - fdata_wx*fdata_wy) << endl;
-        cout << "Largest z-coordinate of BS is " << fdata_vtxzBSupper << endl;
+        cout << "Largest z-coordinate of BS is " << fdata_vtxzBSupper << endl;*/
+        cout << "Total number of selected data events is " << fdata_evt << endl;
+        cout << "Total number of events looped over is " << fdata_totalevt << endl;
+        cout << "Ratio of selected data events to total events is " << fdata_evt/fdata_totalevt << endl;
 
-        TFile data_plot("Histos/data_trees.root", "recreate");
+        TFile data_plot("Tests/trial_data_1file.root", "new");
         //gStyle->SetOptLogy();
 
         //canvas->Divide (2,2);
@@ -524,6 +518,9 @@ void track_selection_redo()
         data_dzleaf->DrawNormalized("", 1);
         data_dzleaf->Write();
 
+	data_dz_sigmadz_nosigmacuts->Scale(1/fdata_trkdz);
+	data_dz_sigmadz_nosigmacuts->Write();
+
         data_dz_sigmadz->Scale(1/fdata_trkdz);
         data_dz_sigmadz->SetMinimum(1E-5);
         data_dz_sigmadz->SetMaximum(1E-1);
@@ -549,6 +546,9 @@ void track_selection_redo()
         data_sigmad0run1->GetYaxis()->SetTitleOffset(1.25);
         data_sigmad0run1->GetYaxis()->SetTitle("Fraction of Tracks");
         data_sigmad0run1->Write();
+
+	data_d0_sigmad0_nosigmacuts->Scale(1/fdata_trkd0);
+	data_d0_sigmad0_nosigmacuts->Write();
 
         data_d0_sigmad0->SetMinimum(1E-5); //leaf values
         data_d0_sigmad0->SetMaximum(0.1);
@@ -666,6 +666,7 @@ void track_selection_redo()
         //==============================================Variables==============================================================
 
         float freco_evt = 0;
+        float freco_totalevt = 0;
         float freco_trkphi = 0;
         float freco_trketa = 0;
         float freco_trkd0 = 0;
@@ -765,6 +766,7 @@ void track_selection_redo()
 
         TH1F *reco_validhits = new TH1F ("Tracks_vs_validhits", "Tracks vs validhits", 50, 0, 50);
         TH1F *reco_chi2n = new TH1F ("Tracks_vs_chi2n", "Tracks vs #chi^{2/ndof}", 50, 0, 5);
+        TH1F *reco_vtxnumber = new TH1F ("vtx_number", "vertex number", )
 
     //================================================== Histos for Multiplicity =========================================================================
 
@@ -774,10 +776,10 @@ void track_selection_redo()
 
         //=========================== Retrieve ROOT file============================
 
-        vector<TString> *herwigfiles = new vector<TString>();
+        //vector<TString> *herwigfiles = new vector<TString>();
         cout << "Getting list of files..." << endl;
         //herwigfiles = getListOfFiles("filelistherwig.txt");
-        herwigfiles = getListOfFiles("filelistherwigtest.txt");
+        //herwigfiles = getListOfFiles("filelistherwigtest.txt");
         cout << "File list stored" << endl;
 
         TFile *herwigfile;
@@ -786,14 +788,14 @@ void track_selection_redo()
     //========================================================= Start of Herwig File Loop ================================================================
 
     //while (getline(filedata, datastr))
-    for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
+    //for(vector<TString>::iterator itlistherwigfiles = herwigfiles->begin() ; itlistherwigfiles != herwigfiles->end(); ++itlistherwigfiles)
     {
-        cout << "Opening new file " << *itlistherwigfiles << endl;
-        //TString Tdatastr(datastr);
-        //herwigfile = TFile::Open("treesCUETP8M1_66.root", "READ");
-        herwigfile = TFile::Open(*itlistherwigfiles, "READ");
+        //cout << "Opening new file " << *itlistherwigfiles << endl;
+        ////TString Tdatastr(datastr);
+        herwigfile = TFile::Open("treesCUETP8M1_66.root", "READ");
+        //herwigfile = TFile::Open(*itlistherwigfiles, "READ");
         herwigtree = (TTree*)herwigfile->Get("UETree/data");
-        cout << "Opened " << *itlistherwigfiles << endl;
+        //cout << "Opened " << *itlistherwigfiles << endl;
         cout<< "Congratulations you have succeeded in looping over the damn Herwig files!\n";
 
         herwigtree->SetBranchAddress("recoTracksp4", &reco_tracks);
@@ -825,7 +827,7 @@ void track_selection_redo()
         Int_t nreco_totalEvt = (Int_t)herwigtree->GetEntries();
         cout << "There is a total of " << nreco_totalEvt << " events." << endl;
 
-        for (int ev = 0; ev < nreco_totalEvt; ++ev)
+        /*for (int ev = 0; ev < nreco_totalEvt; ++ev)
         {
             herwigtree->GetEntry(ev);
 
@@ -882,7 +884,7 @@ void track_selection_redo()
         cout << "Largest BS z-coordinate is " << freco_vtxzBSupper << endl;
         freco_wx = sqrt((freco_sqvtxx) / (freco_sqvtxxnumber)); //RMS(?) of position of vtx x-coordinate. Averaged over number of vtx
         freco_wy = sqrt((freco_sqvtxy) / (freco_sqvtxynumber)); //RMS(?) of position of vtx y-coordinate Averaged over number of vtx
-        freco_wz = sqrt((freco_sqvtxz) / (freco_sqvtxznumber)); //
+        freco_wz = sqrt((freco_sqvtxz) / (freco_sqvtxznumber));*/ //
 
     //========================================================= Start of Herwig Evt Loop ================================================================
 
@@ -890,13 +892,13 @@ void track_selection_redo()
         {
             herwigtree->GetEntry(i);
             //cout << "At entry " << i << endl;
+            ++freco_totalevt;
 
             if (nreco_lumi >= lumi_cut)
             {
                 if (nreco_zerobias == 1)
                 {
                     nreco_totaltrk = reco_tracks->size();
-                    ++freco_evt;
                     freco_multiplicity = 0;
 
                     int vtxdof = 0;
@@ -1029,32 +1031,31 @@ void track_selection_redo()
 
                                             }
                                         }
-                                    }
-
-    //========================================================= End of Trk Loop ================================================================
+                                    }    //========================================================= End of Trk Loop ================================================================
+                                    reco_multiplicity->Fill(freco_multiplicity);
+                                    ++freco_evt;
                                 }
                             //}
                         }
-                    }
-    //========================================================= End of Vertex Loop ================================================================
-                    reco_multiplicity->Fill(freco_multiplicity);
-                    ++freco_evt;
+                    }    //========================================================= End of Vertex Loop ================================================================
+
                 }
             }
-        }
-    //========================================================= End of Herwig Evt Loop ================================================================
+        }    //========================================================= End of Herwig Evt Loop ================================================================
 
-    }
+    }    //========================================================= End of Herwig File Loop ================================================================
 
-    //========================================================= End of Herwig File Loop ================================================================
-        cout << "Before plotting." << endl;
+        /*cout << "Before plotting." << endl;
         cout << "wx is " << freco_wx << endl;
         cout << "wy is " << freco_wy << endl;
         cout << "wz is " << freco_wz << endl;
         cout << "cut on d0 is " << sqrt(0.0025 - freco_wx*freco_wy) << endl;
-        cout << "Largest z-coordinate of BS is " << freco_vtxzBSupper << endl;
+        cout << "Largest z-coordinate of BS is " << freco_vtxzBSupper << endl;*/
+        cout << "Total number of selected Herwig event is " << freco_evt << endl;
+        cout << "Total number of available Herwig event is " << freco_totalevt << endl;
+        cout << "Percentage of selected events is " << (freco_evt)/(freco_totalevt) << endl;
 
-        TFile reco_plot("Histos/data_treesCUETP8M1_66.root", "recreate");
+        TFile reco_plot("Tests/trial_herwig_1file.root", "new");
         //gStyle->SetOptLogy();
 
         //canvas->Divide (2,2);
