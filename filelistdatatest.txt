@@ -1,0 +1,10 @@
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_1.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_2.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_3.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_4.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_5.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_6.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_7.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_8.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_9.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/data/ZeroBias1_trees_10.root

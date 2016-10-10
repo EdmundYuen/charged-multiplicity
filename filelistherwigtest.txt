@@ -1,0 +1,10 @@
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_1.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_10.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_100.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_101.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_103.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_106.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_108.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_109.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_11.root
+root://eoscms.cern.ch//eos/cms/store/user/wei/multiplicity/herwig/trees_112.root
