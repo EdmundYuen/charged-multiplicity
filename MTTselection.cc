@@ -238,6 +238,8 @@ void MTTselection(bool isMC=true)
 
             
             // ======================= Start of Vertex Loop ========================
+                if(!isMC) int ndata_vtx = fvecdata_vtxz->size();
+                
                 for (int vtxnumber = 0; vtxnumber < ndata_vtx; ++vtxnumber)
                 {
                     if((*nvecdata_vtxndof)[vtxnumber] > dof_cut)
