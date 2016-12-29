@@ -93,10 +93,10 @@ void MTTunfold()
 
     
 	//Histograms for checking training and unfolding (MC)
-	TH1F* hGenNch = new TH1F("hGenNch", "Monte Carlo Generated;nch particles;# Events", 100, -0.5, 299.5);
-	TH1F* hRecoNch = new TH1F("hRecoNch", "Monte Carlo Reconstructed;nch particles;# Events", 100, -0.5, 299.5);
-    TH1F* hUnfoldedNch = new TH1F("hUnfoldedNch", "Unfolded Monte Carlo Reconstructed;nch particles;# Events", 100, -0.5, 299.5);
-    TH1F* hFakeNch = new TH1F("hFakeNch", "Fake;nch particles;# Events", 100, -0.5, 299.5);
+	TH1F* hGenNch = new TH1F("hGenNch", "Monte Carlo Generated;nch particles;# Events", 300, -0.5, 299.5);
+	TH1F* hRecoNch = new TH1F("hRecoNch", "Monte Carlo Reconstructed;nch particles;# Events", 300, -0.5, 299.5);
+    TH1F* hUnfoldedNch = new TH1F("hUnfoldedNch", "Unfolded Monte Carlo Reconstructed;nch particles;# Events", 300, -0.5, 299.5);
+    TH1F* hNoCh = new TH1F("hNoCh", "No Charged Particles Generated;nch particles;# Events", 300, -0.5, 299.5);
 
     
 	//RooUnfoldResponse variable
@@ -106,16 +106,16 @@ void MTTunfold()
     //Declaration of tree and its branches variables
     TTree* tree = new TTree("EventTree","");
     
-    vector<float> *fvecdata_vtxz = 0;
-    vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *gen_tracks = 0;
-    vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *reco_tracks = 0;
+    bool isMiss = true;
+    bool noCharged = true;
+    int gennch = 0;
+    int nch = 0;
    
    
     //Getting filelist of trees for training
 	vector<TString>* vfiles = new vector<TString>();
 	cout<< "Getting list of files..." << endl;
-    // vfiles = getListOfFiles("EdmundHerwigtrees_99.root");
-    vfiles = getListOfFiles("UnfoldingFileList.txt");
+    vfiles = getListOfFiles("FileListTraining.txt");
     cout<< "File list stored." << endl;
     
     
@@ -132,14 +132,15 @@ void MTTunfold()
 
         //getting the tree from the current file
         cout<< "Getting tree from file." << endl;
-        tree = (TTree*) file->Get("UETree/data");
+        tree = (TTree*) file->Get("newtree");
         
         //adding branches to the tree ----------------------------------------------------------------------
         //!Branch addresses are not updated to match new skims
         tree->SetBranchStatus("*", 1);
-        tree->SetBranchAddress("vtxz", &fvecdata_vtxz);
-        tree->SetBranchAddress("genParticlesp4", &gen_tracks);
-        tree->SetBranchAddress("recoTracksp4", &reco_tracks);
+        tree->SetBranchAddress("isMiss", &isMiss);
+        tree->SetBranchAddress("noCharged", &noCharged);
+        tree->SetBranchAddress("gennch", &gennch);
+        tree->SetBranchAddress("nch", &nch);
         cout<< "All branches set." << endl;
 
         
@@ -160,41 +161,38 @@ void MTTunfold()
             if( ((i_tot+1) % 100000) == 0) cout <<int(double(i_tot+1)/1000)<<"k done"<<endl;
 
             //Filling the variables defined setting branches
+            gennch = -1, nch = -1;
+            isMiss = true, noCharged = true;
+            
             tree->GetEntry(i);
             
             //Filling Response
-            double gennch = -1, nch = -1;
-            int nvtx = -1;
-            bool simnvtx = 1; //We want to check if there is a generated primary vertex, but there is always a generated primary vertex
-            
             {
-                gennch = gen_tracks->size();
-                nch = reco_tracks->size();
-                nvtx = fvecdata_vtxz->size();
+
             }
 
-            double nch_training, gennch_training;
+            int nch_training, gennch_training;
             
             {
                 gennch_training = gennch;
                 nch_training = nch;
             }
             
-            if (simnvtx==1 && nvtx==1)
+            if (isMiss==false && noCharged==false)
             {
                 response_nch.Fill(nch_training, gennch_training);
                 hGenNch->Fill(gennch_training);
                 hRecoNch->Fill(nch_training);
             }
-            else if (simnvtx==1 && nvtx!=1)
+            else if (isMiss==true && noCharged==false)
             {
                 response_nch.Miss(gennch_training);
 
             }
             else
             {
-                response_nch.Fake(nch_training);
-                hFakeNch->Fill(nch_training);
+                // response_nch.Fake(nch_training);
+                hNoCh->Fill(nch_training);
             }
             
         }
@@ -353,7 +351,7 @@ void MTTunfold()
 	
 	cout<< "=======================Unfolding=====================" <<endl;
 	cout<< "Unfolding charged particle multiplicity..." << endl;
-	RooUnfoldBayes nch_unfold(&response_nch, hRecoNch, 8);
+	RooUnfoldBayes nch_unfold(&response_nch, hRecoNch, 3);
 	hUnfoldedNch = (TH1F*) nch_unfold.Hreco();
     
 	cout<< "===================Unfold Complete!===================" << endl;
@@ -365,10 +363,16 @@ void MTTunfold()
 	TFile* outputunfold = new TFile("outputUnfold.root","RECREATE");
 	// outputunfold->cd();
 
+    hGenNch->SetLineColor(3);
 	hGenNch->Write();
+
+    hRecoNch->SetLineColor(2);
 	hRecoNch->Write();
+
+    hUnfoldedNch->SetLineColor(1);
     hUnfoldedNch->Write();
-    hFakeNch->Write();
+    
+    hNoCh->Write();
     
     outputunfold->Close();
 
