@@ -18,9 +18,11 @@
 #include "TAxis.h"
 #include "TStyle.h"
 #include "TAttAxis.h"
+#include "TString.h"
 
 using namespace std;
 using namespace ROOT::Math;
+
 
 #ifdef __MAKECINT__
 // // #pragma link C++ class vector<TLorentzVector>++
@@ -31,6 +33,40 @@ using namespace ROOT::Math;
 #pragma link C++ class vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > >++;
 #endif
 
+vector<TString>* getListOfFiles(TString strfiles){
+
+  vector<TString>* vfiles = new vector<TString>;
+
+  if(strfiles.Contains(".root")){
+    TChain chain("tree/tree","");
+    chain.Add(strfiles);
+    TObjArray* fileElements=chain.GetListOfFiles();
+    TIter next(fileElements);
+    TChainElement *chEl=0;
+    while (( chEl=(TChainElement*)next() )) {
+      vfiles->push_back(TString(chEl->GetTitle()));
+    }
+  }
+  else if(strfiles.Contains(".txt")){
+    ifstream txtfile;
+    txtfile.open(strfiles);
+    if(!txtfile) {
+      cout<<"Unable to read the txt file where the rootfiles are." << endl ;
+      cout << strfiles << " doesn't exist." << endl << "Aborting ...";
+      exit(0);
+    }
+    string filename;
+    while(txtfile>>filename && filename!="EOF")
+      vfiles->push_back(TString(filename));
+    txtfile.close();
+  }
+  else {
+    cout << "Unknown type of input to get files. Must contain either .root or .txt extension." << endl << "Aborting ..." << endl;
+    exit(0);
+  }
+  cout << "[getListOfFiles] Will run on " << vfiles->size() << " files" << endl;
+  return vfiles;
+}
 
 void track_selection_ZB031()
 {
@@ -82,13 +118,78 @@ void track_selection_ZB031()
     //float fdata_sigmapt_pt = 0;
     int ndata_totaltrk;
 
-    //===========================retrieve ROOT file============================
+	
+//============================================== Histos for pT, eta, phi ==============================================================
+
+    TH1F *data_pt_histo = new TH1F ("data pT", "Normalized data p_{T}", 200, 0, 10);
+    TH1F *data_eta_histo = new TH1F("data eta", "Normalised data #eta", 50, -2.5, 2.5);
+    TH1F *data_phi_histo = new TH1F ("data phi", "Normalized_data #phi", 60, -3, 3);
+
+//================================================== Histos for dz and sigma_dz =========================================================================
+    TH1F *data_dzleaf = new TH1F ("data_dz", "data dz", 400, -10, 10);
+    TH1F *data_sigmadzcalc = new TH1F ("data_sigmadzcalc", "data #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
+    TH1F *data_sigmadzrun1 = new TH1F ("data_sigmadzrun1", "data #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
+    TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
+    TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
+    TH1F *data_dz_sigmadzrun1 = new TH1F ("data_dz_sigmadz run 1", "data d_{z}/#sigma_{z} run 1", 160, -20, 20);
+    //TH1F *data_dz_sigmadzcalcb4cut = new TH1F ("data_dz_sigmadzcalcb4cut", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
+
+//================================================== Histos for d0 and sigma_d0 =========================================================================
+
+    TH1F *data_d0leaf = new TH1F ("data_d0_calcrun1", "data d_{0} calc run 1", 100, -1, 1); //plot of d0 using leaf value to determine how much data is cut
+    TH1F *data_sigmad0calc = new TH1F ("data_sigmad0calc", "data #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
+    TH1F *data_sigmad0run1 = new TH1F ("data_sigmad0run1", "data #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
+
+    TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
+    TH1F *data_d0_sigmad0run1 = new TH1F ("data_d0_sigmad0calcrun1", "data d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
+    TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
+    //TH1F *data_d0_sigmad0calcb4cut = new TH1F ("data_d0_sigmad0calcb4cut", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
+    //TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 150, 0, 0.5);
+
+//================================================== Histos for pT and sigma_pT =========================================================================
+
+    TH1F *data_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data #sigma_{p_{T}}/p_{T}", 20, 0, 0.2);
+
+//================================================== Histos for chi2n and ValidHits =========================================================================
+
+    TH1F *data_validhits = new TH1F ("Tracks_vs_validhits", "Tracks vs validhits", 50, 0, 50);
+    TH1F *data_chi2n = new TH1F ("Tracks_vs_chi2n", "Tracks vs #chi^{2/ndof}", 50, 0, 5);
+
+//================================================== Histos for Multiplicity =========================================================================
+
+    TH1F *data_multiplicity = new TH1F("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
+
+    TH1F *data_vtxzminusvtxz = new TH1F ("vtxzminusvtxz", "vtxzminusvtxz", 800, -4, 4);
+    TH1F *data_vtxzposn = new TH1F ("vtxzposn", "vtxzpos^{n}", 400, -20, 20);
+
+	
+//===========================retrieve ROOT file============================
 
 	// TFile *datafile = TFile::Open("C:/Users/User/Desktop/CERN/Skim/small_dataZB031.root", "READ");
-    TFile *datafile = TFile::Open("C:/Users/User/Desktop/CERN/Skim/dataZB031_1M.root", "READ");
+    // TFile *datafile = TFile::Open("C:/Users/User/Desktop/CERN/Skim/dataZB031_1M.root", "READ");
 	// TFile *datafile = TFile::Open("C:/Users/User/Desktop/CERN/Skim/dataHM85_031_70k.root", "READ");
-    TTree *datatree = (TTree*)datafile->Get("tree/tree");
+    // TTree *datatree = (TTree*)datafile->Get("tree/tree");
 
+	
+	vector<TString> *datafiles = new vector<TString>();
+    cout << "Getting list of files..." << endl;
+
+    datafiles = getListOfFiles("ZB1list.txt");
+    cout << "File list stored" << endl;
+
+        TFile *datafile;
+        TTree *datatree;
+
+    for(vector<TString>::iterator itlistdatafiles = datafiles->begin() ; itlistdatafiles != datafiles->end(); ++itlistdatafiles)
+    {
+        cout << "Opening new file " << *itlistdatafiles << endl;
+
+        datafile = new TFile(*itlistdatafiles, "READ");
+
+        cout << "Opened " << *itlistdatafiles << endl;
+        datatree = (TTree*)datafile->Get("tree/tree");
+
+	
     //===========================define variables to read TTree================
 
     vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *data_tracks = 0;
@@ -157,49 +258,6 @@ void track_selection_ZB031()
     vector<float> *fvecdata_trackschi2n = 0;
     datatree->SetBranchAddress("chi2n", &fvecdata_trackschi2n);
 
-
-//============================================== Histos for pT, eta, phi ==============================================================
-
-    TH1F *data_pt_histo = new TH1F ("data pT", "Normalized data p_{T}", 200, 0, 10);
-    TH1F *data_eta_histo = new TH1F("data eta", "Normalised data #eta", 50, -2.5, 2.5);
-    TH1F *data_phi_histo = new TH1F ("data phi", "Normalized_data #phi", 60, -3, 3);
-
-//================================================== Histos for dz and sigma_dz =========================================================================
-    TH1F *data_dzleaf = new TH1F ("data_dz", "data dz", 400, -10, 10);
-    TH1F *data_sigmadzcalc = new TH1F ("data_sigmadzcalc", "data #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
-    TH1F *data_sigmadzrun1 = new TH1F ("data_sigmadzrun1", "data #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
-    TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
-    TH1F *data_dz_sigmadzcalc = new TH1F ("data_dz_sigmadzcalc", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
-    TH1F *data_dz_sigmadzrun1 = new TH1F ("data_dz_sigmadz run 1", "data d_{z}/#sigma_{z} run 1", 160, -20, 20);
-    //TH1F *data_dz_sigmadzcalcb4cut = new TH1F ("data_dz_sigmadzcalcb4cut", "data d_{z}/#sigma_{z} calc", 160, -20, 20);
-
-//================================================== Histos for d0 and sigma_d0 =========================================================================
-
-    TH1F *data_d0leaf = new TH1F ("data_d0_calcrun1", "data d_{0} calc run 1", 100, -1, 1); //plot of d0 using leaf value to determine how much data is cut
-    TH1F *data_sigmad0calc = new TH1F ("data_sigmad0calc", "data #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
-    TH1F *data_sigmad0run1 = new TH1F ("data_sigmad0run1", "data #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
-
-    TH1F *data_d0_sigmad0 = new TH1F ("data_d0_sigmad0", "data d_{0}/#sigma_{xy}", 160, -20, 20); //both leaf values
-    TH1F *data_d0_sigmad0run1 = new TH1F ("data_d0_sigmad0calcrun1", "data d_{0}/#sigma_{xy} calc run 1", 160, -20, 20); //plot using run 1 formula
-    TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 160, -20, 20); //using formula from WY
-    //TH1F *data_d0_sigmad0calcb4cut = new TH1F ("data_d0_sigmad0calcb4cut", "data d_{0}/#sigma_{xy} calc", 160, -20, 20);
-    //TH1F *data_d0_sigmad0calc = new TH1F ("data_d0_sigmad0calc", "data d_{0}/#sigma_{xy} calc", 150, 0, 0.5);
-
-//================================================== Histos for pT and sigma_pT =========================================================================
-
-    TH1F *data_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data #sigma_{p_{T}}/p_{T}", 20, 0, 0.2);
-
-//================================================== Histos for chi2n and ValidHits =========================================================================
-
-    TH1F *data_validhits = new TH1F ("Tracks_vs_validhits", "Tracks vs validhits", 50, 0, 50);
-    TH1F *data_chi2n = new TH1F ("Tracks_vs_chi2n", "Tracks vs #chi^{2/ndof}", 50, 0, 5);
-
-//================================================== Histos for Multiplicity =========================================================================
-
-    TH1F *data_multiplicity = new TH1F("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
-
-    TH1F *data_vtxzminusvtxz = new TH1F ("vtxzminusvtxz", "vtxzminusvtxz", 800, -4, 4);
-    TH1F *data_vtxzposn = new TH1F ("vtxzposn", "vtxzpos^{n}", 400, -20, 20);
 
 
     Int_t ndata_totalEvt = (Int_t)datatree->GetEntries();
@@ -270,7 +328,7 @@ void track_selection_ZB031()
     {
         datatree->GetEntry(i);
         //cout << "At entry " << i << endl;
-
+//lumicut for 031[31, 101], [125, 231], [233, 493], [586, 1054], [1096, 1199]]
         if (ndata_lumi >= lumi_cut && ndata_run == 255031)
         {
             // if (ndata_zerobias == 1)
@@ -419,7 +477,8 @@ void track_selection_ZB031()
         }
     }
 //========================================================= End of Evt Loop ================================================================
-
+	}
+//========================================================= End of File Loop ===========================================================================
     cout << "Before plotting." << endl;
     cout << "wx is " << fdata_wx << endl;
     cout << "wy is " << fdata_wy << endl;
