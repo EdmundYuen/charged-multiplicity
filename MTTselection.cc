@@ -97,7 +97,7 @@ void MTTselection(bool isMC=true)
     
     // ===========================Track cuts====================================
     
-    const double eta_cut = 2.4;
+    const double eta_cut = 2.;
     const double pt_cut = 0.5;
     const int highpurity_cut = 1;
     const float d0_d0Err_cut = 3.;
@@ -118,6 +118,7 @@ void MTTselection(bool isMC=true)
     
     //=========================== Histos for pT, eta ===========================
 
+    TH1F *hd0d0err = new TH1F ("d0d0err", "d0 d0err", 400, -20, 20);
     // TH1F *hgenPt = new TH1F ("gen Pt", "Normalized data p_{T}", 200, 0, 10);
     // TH1F *hrecoPt = new TH1F ("reco Pt", "Normalized data p_{T}", 200, 0, 10);
     // TH1F *hgenEta = new TH1F("gen eta", "Normalised data #eta", 50, -2.5, 2.5);
@@ -167,30 +168,48 @@ void MTTselection(bool isMC=true)
         int ndata_run = 0;
         oldtree->SetBranchAddress("Run", &ndata_run);
 
-        vector<double> *fvecdata_vtxx = 0;
-        oldtree->SetBranchAddress("vtxx", &fvecdata_vtxx);
+        vector<double> *dvecdata_vtxx = 0;
+        oldtree->SetBranchAddress("vtxx", &dvecdata_vtxx);
 
-        vector<double> *fvecdata_vtxy = 0;
-        oldtree->SetBranchAddress("vtxy", &fvecdata_vtxy);
+        vector<double> *dvecdata_vtxy = 0;
+        oldtree->SetBranchAddress("vtxy", &dvecdata_vtxy);
 
-        vector<double> *fvecdata_vtxz = 0;
-        oldtree->SetBranchAddress("vtxz", &fvecdata_vtxz);
+        vector<double> *dvecdata_vtxz = 0;
+        oldtree->SetBranchAddress("vtxz", &dvecdata_vtxz);
         
+        vector<double> *dvecdata_vtxzBS = 0;
+        oldtree->SetBranchAddress("vtxzBS", &dvecdata_vtxzBS);
+
+        Double_t ddata_BSz = 0;
+        oldtree->SetBranchAddress("BSz", &ddata_BSz);
+
         vector<int> *nvecdata_vtxndof = 0;
         oldtree->SetBranchAddress("vtxndof", &nvecdata_vtxndof);
         
         vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *reco_tracks = 0;
         oldtree->SetBranchAddress("trP4", &reco_tracks);
         
-        vector<double> *fvecdata_pterr = 0;
-        oldtree->SetBranchAddress("ptErr", &fvecdata_pterr);
+        vector<double> *dvecdata_pterr = 0;
+        oldtree->SetBranchAddress("ptErr", &dvecdata_pterr);
+
+        vector<double> *dvecdata_d0 = 0;
+		oldtree->SetBranchAddress("d0", &dvecdata_d0);
+        
+		vector<double> *dvecdata_d0err = 0;
+		oldtree->SetBranchAddress("d0err", &dvecdata_d0err);
+        
+        vector<double> *dvecdata_dz = 0;
+		oldtree->SetBranchAddress("dz", &dvecdata_dz);
+        
+		vector<double> *dvecdata_dzerr = 0;
+		oldtree->SetBranchAddress("dzerr", &dvecdata_dzerr);
         
         vector<int> *nvecdata_highpurity = 0;
         oldtree->SetBranchAddress("highPurity", &nvecdata_highpurity);
         
         int ndata_vtx = 0;
         
-        vector<int> *fvecdata_partCharge = 0;
+        vector<int> *dvecdata_partCharge = 0;
         
         vector<int> *nvecdata_partStatus = 0;
         
@@ -200,7 +219,7 @@ void MTTselection(bool isMC=true)
         {     
             oldtree->SetBranchAddress("vtx", &ndata_vtx);
 
-            oldtree->SetBranchAddress("partCharge", &fvecdata_partCharge);
+            oldtree->SetBranchAddress("partCharge", &dvecdata_partCharge);
             
             oldtree->SetBranchAddress("partStatus", &nvecdata_partStatus);
 
@@ -234,7 +253,7 @@ void MTTselection(bool isMC=true)
                     {
                         XYZTVector gen_vec = (*gen_tracks)[gt];
 
-                        if (((*fvecdata_partCharge)[gt] != 0) && ((*nvecdata_partStatus)[gt] == 1))
+                        if (((*dvecdata_partCharge)[gt] != 0) && ((*nvecdata_partStatus)[gt] == 1))
                         {
                             //Indicate that event generated charged particle
                             Charged = true;
@@ -252,13 +271,14 @@ void MTTselection(bool isMC=true)
 
             
             // ======================= Start of Vertex Loop ====================
-                if(!isMC) ndata_vtx = fvecdata_vtxz->size();
+                if(!isMC) ndata_vtx = dvecdata_vtxz->size();
                 
                 for (int vtxnumber = 0; vtxnumber < ndata_vtx; ++vtxnumber)
                 {
                     if (ndata_vtx == vtx_number_cut)
                     {
-                        if((*nvecdata_vtxndof)[vtxnumber] > dof_cut)
+                        
+                        if(((*nvecdata_vtxndof)[vtxnumber] > dof_cut) && (fabs((*dvecdata_vtxzBS)[vtxnumber]-ddata_BSz) <= vtxz_cut))
                         {
                             isSelected = true;
                             ndata_numberofrtrk = reco_tracks->size();
@@ -272,7 +292,18 @@ void MTTselection(bool isMC=true)
                                 {
                                     if ((reco_vec.Pt() >= pt_cut) && (fabs(reco_vec.Eta()) <= eta_cut))
                                     {
-                                        ++nch;
+                                        if ((*dvecdata_pterr)[rt]/reco_vec.Pt()<ptErr_pt_cut)
+                                        {
+                                            if ((*dvecdata_dz)[rt]/(*dvecdata_dzerr)[rt]<dz_dzErr_cut)
+                                            {
+                                                hd0d0err->Fill((*dvecdata_d0)[rt]/(*dvecdata_d0err)[rt]);
+                                            
+                                                if ((*dvecdata_d0)[rt]/(*dvecdata_d0err)[rt]<d0_d0Err_cut)
+                                                {
+                                                    ++nch;
+                                                }
+                                            }
+                                        }
                                     }
                                 }   
                             }
@@ -299,7 +330,7 @@ void MTTselection(bool isMC=true)
         // hgenEta->Draw();
         // hrecoEta->Draw("same");
         // gPad->WaitPrimitive();
-        
+        hd0d0err->Write();
 
         // newfile->Write();
         newfile->Close();
