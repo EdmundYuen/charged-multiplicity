@@ -121,7 +121,7 @@ void MTTselection(bool isMC=true)
     for(vector<TString>::iterator itfiles = vfiles->begin() ; itfiles != vfiles->end(); ++itfiles)
 	{
         
-        // ===========================retrieve ROOT file============================
+        // ===========================retrieve ROOT file========================
 
         TFile *oldfile = TFile::Open(*itfiles, "READ");
         
@@ -134,12 +134,12 @@ void MTTselection(bool isMC=true)
             TTree *oldtree = (TTree*)oldfile->Get("tree/tree");
         }   
         
-        // ===========================define variables for new TTree================
+        // ===========================define variables for new TTree============
 
         int gennch, nch;
-        bool isMiss, noCharged;
+        bool isMiss, Charged;
         
-        // ===========================define new ROOT file==========================
+        // ===========================define new ROOT file======================
         
         TFile *newfile = new TFile("selected_"+*itfiles,"recreate");
         TTree *newtree = new TTree("newtree","Selected");
@@ -149,10 +149,10 @@ void MTTselection(bool isMC=true)
         {
             newtree->Branch("gennch",&gennch,"gennch/I");
             newtree->Branch("isMiss",&isMiss,"isMiss/O");
-            newtree->Branch("noCharged",&noCharged,"noCharged/O");
+            newtree->Branch("Charged",&Charged,"Charged/O");
         }
 
-        // ===========================define variables to read TTree================
+        // ===========================define variables to read TTree============
 
         int ndata_lumi = 0;
         oldtree->SetBranchAddress("Lumi", &ndata_lumi);
@@ -189,6 +189,9 @@ void MTTselection(bool isMC=true)
             vector<float> *fvecdata_partCharge = 0;
             oldtree->SetBranchAddress("partCharge", &fvecdata_partCharge);
             
+            vector<int> *nvecdata_partStatus = 0;
+            oldtree->SetBranchAddress("partStatus", &nvecdata_partStatus);
+
             vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *gen_tracks = 0;
             oldtree->SetBranchAddress("partP4", &gen_tracks);
         }
@@ -196,14 +199,14 @@ void MTTselection(bool isMC=true)
         Int_t ndata_totalEvt = (Int_t)oldtree->GetEntries();
         cout << "There is a total of " << ndata_totalEvt << " events." << endl;
 
-        // =========================== Start of Evt Loop ===========================
+        // =========================== Start of Evt Loop =======================
         for (Int_t i = 0; i < ndata_totalEvt; ++i)
         {
             
             gennch = 0;
             nch = 0;
             isMiss = true;
-            noCharged = true;
+            Charged = false;
             
             oldtree->GetEntry(i);
             // cout << "At entry " << i << endl;
@@ -212,45 +215,44 @@ void MTTselection(bool isMC=true)
             {
                 if (isMC)
                 {
-            // ======================= Start of Vertex Loop ========================
+            // ======================= Start of Vertex Loop ====================
                     ndata_numberofgtrk = gen_tracks->size();
                                 
-                    // =================== Start of Trk Loop =======================
+                    // =================== Start of Trk Loop ===================
                     for (int gt = 0; gt < ndata_numberofgtrk; ++gt)
                     {
                         XYZTVector gen_vec = (*gen_tracks)[gt];
 
-                        if ((gen_vec.Pt() >= pt_cut) && (fabs(gen_vec.Eta()) <= eta_cut))
+                        if (((*fvecdata_partCharge)[gt] != 0) && ((*nvecdata_partStatus)[gt] == 1))
                         {
-                            if ((*fvecdata_partCharge)[gt] != 0)
+                            //Indicate that event generated charged particle
+                            Charged = true;
+                            
+                            if ((gen_vec.Pt() >= pt_cut) && (fabs(gen_vec.Eta()) <= eta_cut))
                             {
-                                // hgenPt->Fill(gen_vec.Pt());
-                                // hgenEta->Fill(gen_vec.Eta());
-                                noCharged = false;
+                                //Fill generated charged particle multiplicity
                                 ++gennch;
                             }
                         } 
                     }
-                    // =================== End of Trk Loop =========================
-          
+                    // =================== End of Trk Loop =====================
                 }
-            // ======================= End of Vertex Loop ==========================
+            // ======================= End of Vertex Loop ======================
 
             
-            // ======================= Start of Vertex Loop ========================
+            // ======================= Start of Vertex Loop ====================
                 if(!isMC) int ndata_vtx = fvecdata_vtxz->size();
                 
                 for (int vtxnumber = 0; vtxnumber < ndata_vtx; ++vtxnumber)
                 {
-                    if((*nvecdata_vtxndof)[vtxnumber] > dof_cut)
+                    if (ndata_vtx == vtx_number_cut)
                     {
-
-                        if (ndata_vtx == vtx_number_cut)
+                        if((*nvecdata_vtxndof)[vtxnumber] > dof_cut)
                         {
-                            ndata_numberofrtrk = reco_tracks->size();
                             isMiss = false;
+                            ndata_numberofrtrk = reco_tracks->size();
                             
-                // =================== Start of Trk Loop ===========================
+                // =================== Start of Trk Loop =======================
                             for (int rt = 0; rt < ndata_numberofrtrk; ++rt)
                             {
                                 XYZTVector reco_vec = (*reco_tracks)[rt];
@@ -259,24 +261,23 @@ void MTTselection(bool isMC=true)
                                 {
                                     if ((reco_vec.Pt() >= pt_cut) && (fabs(reco_vec.Eta()) <= eta_cut))
                                     {
-                                        // hrecoPt->Fill(reco_vec.Pt());
-                                        // hrecoEta->Fill(reco_vec.Eta());
                                         ++nch;
                                     }
                                 }   
                             }
-                // =================== End of Trk Loop =============================
+                // =================== End of Trk Loop =========================
 
                         }
                     }   
                 }
-            // ======================= End of Vertex Loop ==========================
+            // ======================= End of Vertex Loop ======================
 
             }
             
+            //Ignore events with no charged particles generated
             newtree->Fill();
         }
-        // =========================== End of Evt Loop =============================
+        // =========================== End of Evt Loop =========================
 
         
         newtree->Write();

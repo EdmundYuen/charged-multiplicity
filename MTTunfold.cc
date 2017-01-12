@@ -107,7 +107,7 @@ void MTTunfold()
     TTree* tree = new TTree("EventTree","");
     
     bool isMiss = true;
-    bool noCharged = true;
+    bool Charged = false;
     int gennch = 0;
     int nch = 0;
    
@@ -138,7 +138,7 @@ void MTTunfold()
         //!Branch addresses are not updated to match new skims
         tree->SetBranchStatus("*", 1);
         tree->SetBranchAddress("isMiss", &isMiss);
-        tree->SetBranchAddress("noCharged", &noCharged);
+        tree->SetBranchAddress("Charged", &Charged);
         tree->SetBranchAddress("gennch", &gennch);
         tree->SetBranchAddress("nch", &nch);
         cout<< "All branches set." << endl;
@@ -162,7 +162,7 @@ void MTTunfold()
 
             //Filling the variables defined setting branches
             gennch = -1, nch = -1;
-            isMiss = true, noCharged = true;
+            isMiss = true, Charged = false;
             
             tree->GetEntry(i);
             
@@ -176,18 +176,17 @@ void MTTunfold()
             {
                 gennch_training = gennch;
                 nch_training = nch;
+                hGenNch->Fill(gennch_training);
             }
             
-            if (isMiss==false && noCharged==false)
+            if (isMiss==false && Charged==true)
             {
                 response_nch.Fill(nch_training, gennch_training);
-                hGenNch->Fill(gennch_training);
                 hRecoNch->Fill(nch_training);
             }
-            else if (isMiss==true && noCharged==false)
+            else if (isMiss==true && Charged==true)
             {
                 response_nch.Miss(gennch_training);
-
             }
             else
             {
