@@ -1,11 +1,12 @@
-#include "TROOT.h"
+#include <TROOT.h>
 #include <TTree.h>
 #include <TFile.h>
+#include <TChain.h>
+#include <TChainElement.h>
+#include <TDirectory.h>
 #include <TH1.h>
 #include <algorithm>
 #include "math.h"
-#include <vector>
-#include <iostream>
 #include "TLorentzVector.h"
 #include "TSystem.h"
 #include "TCanvas.h"
@@ -19,8 +20,13 @@
 #include "TStyle.h"
 #include "TAttAxis.h"
 
-using namespace std;
 using namespace ROOT::Math;
+
+#include <vector>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
 
 #ifdef __MAKECINT__
     #pragma link C++ class vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > >++;
@@ -124,31 +130,32 @@ void MTTselection(bool isMC=true)
         // ===========================retrieve ROOT file========================
 
         TFile *oldfile = TFile::Open(*itfiles, "READ");
+        TTree *oldtree;
         
         if (isMC)
         {
-            TTree *oldtree = (TTree*)oldfile->Get("mytree/tree");
+            oldtree = (TTree*)oldfile->Get("mytree/tree");
         }
         else
         {
-            TTree *oldtree = (TTree*)oldfile->Get("tree/tree");
+            oldtree = (TTree*)oldfile->Get("tree/tree");
         }   
         
         // ===========================define variables for new TTree============
 
         int gennch, nch;
-        bool isMiss, Charged;
+        bool isSelected, Charged;
         
         // ===========================define new ROOT file======================
         
         TFile *newfile = new TFile("selected_"+*itfiles,"recreate");
         TTree *newtree = new TTree("newtree","Selected");
         newtree->Branch("nch",&nch,"nch/I");
+        newtree->Branch("isSelected",&isSelected,"isSelected/O");
         
         if(isMC)
         {
             newtree->Branch("gennch",&gennch,"gennch/I");
-            newtree->Branch("isMiss",&isMiss,"isMiss/O");
             newtree->Branch("Charged",&Charged,"Charged/O");
         }
 
@@ -175,24 +182,28 @@ void MTTselection(bool isMC=true)
         vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *reco_tracks = 0;
         oldtree->SetBranchAddress("trP4", &reco_tracks);
         
-        vector<float> *fvecdata_pterr = 0;
+        vector<double> *fvecdata_pterr = 0;
         oldtree->SetBranchAddress("ptErr", &fvecdata_pterr);
         
         vector<int> *nvecdata_highpurity = 0;
         oldtree->SetBranchAddress("highPurity", &nvecdata_highpurity);
         
+        int ndata_vtx = 0;
+        
+        vector<int> *fvecdata_partCharge = 0;
+        
+        vector<int> *nvecdata_partStatus = 0;
+        
+        vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *gen_tracks = 0;
+        
         if (isMC)
         {     
-            int ndata_vtx = 0;
             oldtree->SetBranchAddress("vtx", &ndata_vtx);
 
-            vector<float> *fvecdata_partCharge = 0;
             oldtree->SetBranchAddress("partCharge", &fvecdata_partCharge);
             
-            vector<int> *nvecdata_partStatus = 0;
             oldtree->SetBranchAddress("partStatus", &nvecdata_partStatus);
 
-            vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *gen_tracks = 0;
             oldtree->SetBranchAddress("partP4", &gen_tracks);
         }
         
@@ -205,7 +216,7 @@ void MTTselection(bool isMC=true)
             
             gennch = 0;
             nch = 0;
-            isMiss = true;
+            isSelected = false;
             Charged = false;
             
             oldtree->GetEntry(i);
@@ -241,7 +252,7 @@ void MTTselection(bool isMC=true)
 
             
             // ======================= Start of Vertex Loop ====================
-                if(!isMC) int ndata_vtx = fvecdata_vtxz->size();
+                if(!isMC) ndata_vtx = fvecdata_vtxz->size();
                 
                 for (int vtxnumber = 0; vtxnumber < ndata_vtx; ++vtxnumber)
                 {
@@ -249,7 +260,7 @@ void MTTselection(bool isMC=true)
                     {
                         if((*nvecdata_vtxndof)[vtxnumber] > dof_cut)
                         {
-                            isMiss = false;
+                            isSelected = true;
                             ndata_numberofrtrk = reco_tracks->size();
                             
                 // =================== Start of Trk Loop =======================
