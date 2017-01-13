@@ -93,11 +93,13 @@ void MTTunfold()
 
     
 	//Histograms for checking training and unfolding (MC)
-	TH1F* hGenNch = new TH1F("hGenNch", "Monte Carlo Generated;nch particles;# Events", 300, -0.5, 299.5);
-	TH1F* hRecoNch = new TH1F("hRecoNch", "Monte Carlo Reconstructed;nch particles;# Events", 300, -0.5, 299.5);
-    TH1F* hUnfoldedNch = new TH1F("hUnfoldedNch", "Unfolded Monte Carlo Reconstructed;nch particles;# Events", 300, -0.5, 299.5);
-    TH1F* hNoCh = new TH1F("hNoCh", "No Charged Particles Generated;nch particles;# Events", 300, -0.5, 299.5);
+	TH1F* hGenNch = new TH1F("hGenNch", "Normalised Monte Carlo Generated (Training);nch particles;# Events", 300, -0.5, 299.5);
+	TH1F* hRecoNch = new TH1F("hRecoNch", "Normalised Monte Carlo Reconstructed (Training);nch particles;# Events", 300, -0.5, 299.5);
+    TH1F* hUnfoldedNch = new TH1F("hUnfoldedNch", "Unfolded Monte Carlo Reconstructed (Training);nch particles;# Events", 300, -0.5, 299.5);
+    // TH1F* hNoCh = new TH1F("hNoCh", "No Charged Particles Generated;nch particles;# Events", 300, -0.5, 299.5);
 
+    //Normalisation variables
+    int nGenNch, nRecoNch, nUnfoldedNch;
     
 	//RooUnfoldResponse variable
 	RooUnfoldResponse response_nch(hRecoNch, hGenNch);
@@ -176,22 +178,29 @@ void MTTunfold()
             {
                 gennch_training = gennch;
                 nch_training = nch;
-                hGenNch->Fill(gennch_training);
             }
             
             if (isSelected==true && Charged==true)
             {
                 response_nch.Fill(nch_training, gennch_training);
+                
+                hGenNch->Fill(gennch_training);
+                nGenNch++;
+                
                 hRecoNch->Fill(nch_training);
+                nRecoNch++;
             }
             else if (isSelected==false && Charged==true)
             {
                 response_nch.Miss(gennch_training);
+                
+                hGenNch->Fill(gennch_training);
+                nGenNch++;
             }
             else
             {
                 // response_nch.Fake(nch_training);
-                hNoCh->Fill(nch_training);
+                // hNoCh->Fill(nch_training);
             }
             
         }
@@ -201,8 +210,8 @@ void MTTunfold()
         file->Close();
     }
 	//============================================End of loop over files==============================================
+    cout<< "End Training." << endl;
     
-	cout<< "End Training." << endl;
 	//*************************************************END TRAINING***************************************************	
 
 	// double Jet20bias = 1.;    //weight factor to test bias of trigger matching
@@ -219,139 +228,115 @@ void MTTunfold()
 	// //Ratio Plot
 	// TH1F* ratio_nch_true_unfold;
     
-	// //Declaration of tree and its branches variables
-	// TTree* tree2 = new TTree("UEevt","");
-	// delete mcbranches;
-	// delete databranches;
-	// mcbranches = new MCTreeBranches;
-	// databranches = new DataTreeBranches;
+    //Histograms for unfolding (data)
+	TH1F* hdataRecoNch = new TH1F("hdataNch", "Normalised Data Reconstructed (Unfolding);nch particles;# Events", 300, -0.5, 299.5);
+    TH1F* hdataUnfoldedNch = new TH1F("hdataUnfoldedNch", "Unfolded Data Reconstructed (Unfolding);nch particles;# Events", 300, -0.5, 299.5);
+    
+    //Normalisation variables
+    int ndataRecoNch, ndataUnfoldedNch;
+    
+    
+	//Declaration of tree and its branches variables
+	TTree* tree2 = new TTree("EventTree","");
 
-	// //Getting filelist of trees for unfolding
-	// delete vfiles;
-	// vfiles = new vector<TString>();
-	// cout<< "Getting list of files..." << endl;
-   // vfiles = getListOfFiles("../filelistsmalltreesdataleftright_akt.txt");
-   // cout<< "File list stored." << endl;
+	//Getting filelist of data trees for unfolding
+	delete vfiles;
+	vfiles = new vector<TString>();
+	cout<< "Getting list of files..." << endl;
+    vfiles = getListOfFiles("FileListUnfolding.txt");
+    cout<< "File list stored." << endl;
 
 	// i_tot = 0;
 
 	//****************************************************UNFOLDING*************************************************************
-	// cout<< "=======================Testing=====================" <<endl;
+	cout<< "=======================Testing=====================" <<endl;
+    
 	//============================================Starting Loop over files====================================================== 
 	//==========================================================================================================================
 	//(Stops at end of list of files or when reached nevt_max)
 	//==========================================================================================================================
-   // for(vector<TString>::iterator itfiles = vfiles->begin() ; itfiles != vfiles->end(); ++itfiles)
-	// {
-      // cout<< "Opening new file." << endl;
-		// TFile* fileunfold = TFile::Open(*itfiles,"READ");
+   for(vector<TString>::iterator itfiles = vfiles->begin() ; itfiles != vfiles->end(); ++itfiles)
+	{
+        cout<< "Opening new file." << endl;
+		TFile* fileunfold = TFile::Open(*itfiles,"READ");
 
-		// //getting the tree from the current file
-		// cout<< "Getting tree from file." << endl;
-		// if (isMC) tree2 = (TTree*) fileunfold->Get("MCTree");
-		// else tree2 = (TTree*) fileunfold->Get("DataTree");
+		//getting the tree from the current file
+		cout<< "Getting tree from file." << endl;
+		tree2 = (TTree*) fileunfold->Get("newtree");
+        
+        //adding branches to the tree ----------------------------------------------------------------------
+        //!Branch addresses are not updated to match new skims
+        tree2->SetBranchStatus("*", 1);
+        tree2->SetBranchAddress("isSelected", &isSelected);
+        tree2->SetBranchAddress("Charged", &Charged);
+        tree2->SetBranchAddress("gennch", &gennch);
+        tree2->SetBranchAddress("nch", &nch);
+        cout<< "All branches set." << endl;
 
-		// //adding branches to the tree ----------------------------------------------------------------------
-		// tree2->SetBranchStatus("*", 1);
-		// if (isMC) tree2->SetBranchAddress("UEevent", &(mcbranches->nch_trans));
-		// else tree2->SetBranchAddress("UEevent", &(databranches->nch_trans));
-	
-		// cout<< "All branches set." << endl;
-
-		// //Getting number of events
-		// int nev = int(tree2->GetEntriesFast());
-		// cout <<"The current file has " << nev << " entries." << endl;
-		       
+        //Getting number of events
+        int nev = int(tree2->GetEntriesFast());
+        cout <<"The current file has " << nev << " entries." << endl;
+        
 		// //---------------------------------------Starting loop over events------------------------------------------
 		// //----------------------------------------------------------------------------------------------------------
 		// //(Stops when reached end of file or nevt_max)
 		// //----------------------------------------------------------------------------------------------------------
-		// for(int i = (int) 0; i < (int) nev; ++i , ++i_tot)
-		// {
-			// //cout<< "Event Number: " << i_tot << endl;
-			// //printing the number of events done every hundred events
-			// //if( ((i_tot+1) % 100) == 0) cout <<int(double(i_tot+1))<<" events done"<<endl;
-			// //printing the % of events done every 100k evts
-			// if( ((i_tot+1) % 100000) == 0) cout <<int(double(i_tot+1)/1000)<<"k done"<<endl;
+        for(int i = 0; i < (int) nev; ++i , ++i_tot)
+        {
+            //cout<< "Event Number: " << i_tot << endl;
+            //printing the number of events done every hundred events
+            //if( ((i_tot+1) % 100) == 0) cout <<int(double(i_tot+1))<<" events done"<<endl;
+            //printing the % of events done every 100k evts
+            if( ((i_tot+1) % 100000) == 0) cout <<int(double(i_tot+1)/1000)<<"k done"<<endl;
 
-			// //Filling the variables defined setting branches
-			// tree2->GetEntry(i);
-			
-			// if (isMC)
-			// {
-				// double gennchtransall = mcbranches->gen_nch_trans;
+            //Filling the variables defined setting branches
+            tree2->GetEntry(i);
+            
+            //
+            {
 
-				// double nchtransall = mcbranches->nch_trans;
+            }
 
-				// double nchtransallcorr = mcbranches->nch_trans_corr;
+            int nch_unfolding;
+            
+            {
+                nch_unfolding = nch;
+            }
+            
+            if (isSelected==true && Charged==true)
+            {
+                hdataRecoNch->Fill(nch_unfolding);
+                ndataRecoNch++;
+            }
+            else if (isSelected==false && Charged==true)
+            {
 
-				// // {
-					// // profile_n_mult_trans_true->Fill(genleadjetpt, (gennchtransall)/(2*2.0*deg2rad(120)), pthatweight);
-				// // }
+            }
+            else
+            {
 
-				// if (mcbranches->isSelected)
-				// {
-
-
-					// {
-						// // profile_n_mult_trans_meas->Fill(leadjetpt, nchtransall/(2*2.0*deg2rad(120)), pthatweight);
-
-						// {
-							// sample_nch->Fill(nchtransall);
-						// }
-					// }		
-				// }
-			// }
-			// else
-			// {
-				// double nchtransall = databranches->nch_trans, nchtransdiff = fabs(databranches->nch_trans_left-databranches->nch_trans_right);
-				// double nchtransmax, nchtransmin;
-
-				// double nchtransallcorr = databranches->nch_trans_corr, nchtransdiffcorr = fabs(databranches->nch_trans_left_corr-databranches->nch_trans_right_corr);
-				// double nchtransmaxcorr, nchtransmincorr;
-				
-				// double leadjetpt = databranches->leadjetpt;
-
-				// if (databranches->isSelected)
-				// {
-
-					// if ((leadjetpt <= 25) && databranches->trg_minbias)
-					// {
-						// {
-							// {
-								// sample_nch->Fill(leadjetpt, nchtransdiff);
-							// }
-						// }
-					// }	
-					// if ((leadjetpt > 25) && (leadjetpt <= 50) && databranches->trg_jet20)
-					// {
-							// {
-								// sample_nch->Fill(leadjetpt, nchtransdiff, Jet20bias*(databranches->prsc_jet20)/(databranches->prsc_minbias));
-							// }
-						// }
-					// }	
-					// if ((leadjetpt > 50) && databranches->trg_jet40)
-					// {
-						// {
-							// {
-								// sample_nch->Fill(leadjetpt, nchtransdiff, (databranches->prsc_jet40)/(databranches->prsc_minbias));
-							// }
-						// }
-					// }
-				// }
-			// }
-		// }
+            }
+            
+        }
 		// //---------------------------------------------End of loop over events----------------------------------------
 
-		// //Closing current files
-		// fileunfold->Close();
-	// }
+		//Closing current files
+		fileunfold->Close();
+	}
 	//============================================End of loop over files==============================================
 	
 	cout<< "=======================Unfolding=====================" <<endl;
 	cout<< "Unfolding charged particle multiplicity..." << endl;
+    
+    //Normalise before unfolding??
+    hGenNch->Scale(1./nGenNch);
+    hRecoNch->Scale(1./nRecoNch);
+    hdataRecoNch->Scale(1./ndataRecoNch);
+    
 	RooUnfoldBayes nch_unfold(&response_nch, hRecoNch, 3);
+	RooUnfoldBayes data_nch_unfold(&response_nch, hdataRecoNch, 3);
 	hUnfoldedNch = (TH1F*) nch_unfold.Hreco();
+	hdataUnfoldedNch = (TH1F*) data_nch_unfold.Hreco();
     
 	cout<< "===================Unfold Complete!===================" << endl;
     
@@ -370,8 +355,14 @@ void MTTunfold()
 
     hUnfoldedNch->SetLineColor(1);
     hUnfoldedNch->Write();
+
+    hdataRecoNch->SetLineColor(2);
+	hdataRecoNch->Write();
     
-    hNoCh->Write();
+    hdataUnfoldedNch->SetLineColor(1);
+    hdataUnfoldedNch->Write();
+    
+    // hNoCh->Write();
     
     outputunfold->Close();
 
