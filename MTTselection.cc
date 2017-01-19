@@ -74,7 +74,7 @@ void MTTselection(bool isMC=true)
     //===============Getting filelist of trees for training=====================
     
 	vector<TString>* vfiles = new vector<TString>();
-	cout<< "Getting list of files..." << endl;
+	cout << "Getting list of files..." << endl;
     
     if (isMC)
     {
@@ -87,17 +87,15 @@ void MTTselection(bool isMC=true)
     
     cout<< "File list stored." << endl;
     
-    // ===========================Event cuts====================================
+    // ===========================Event selections==============================
     
-    // const int zerobias_cut = 1;
-    const int lumi_cut = 90;
     const int vtx_number_cut = 1;
     const float vtxz_cut = 10.;
-    const float vtxxy_cut = 2.;
+    const float vtxxy_cut = 2.; //0.2?
     
     // ===========================Track cuts====================================
     
-    const double eta_cut = 2.;
+    const double eta_cut = 2.4;
     const double pt_cut = 0.5;
     const int highpurity_cut = 1;
     const float d0_d0Err_cut = 3.;
@@ -106,15 +104,7 @@ void MTTselection(bool isMC=true)
     const int dof_cut = 4;
     
     // ===========================Variables=====================================
-
-    int ndata_numberofvtxx = 0;
-	int	ndata_totalvtxx = 0;
-	int fdata_numselectedvtxx = 0;
-    int ndata_numberofgtrk = 0;
-    int ndata_numberofrtrk = 0;
-    int ndata_totaltrk = 0;
-	int ndata_numselectedtrk = 0;
-	int ndata_numtrkupper = 0;
+    
     
     //=========================== Histos for pT, eta ===========================
 
@@ -189,17 +179,23 @@ void MTTselection(bool isMC=true)
         vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > *reco_tracks = 0;
         oldtree->SetBranchAddress("trP4", &reco_tracks);
         
+        vector<double> *dvecdata_treta = 0;
+        oldtree->SetBranchAddress("trEta", &dvecdata_treta);
+        
+        vector<double> *dvecdata_trpt = 0;
+        oldtree->SetBranchAddress("trPt", &dvecdata_trpt);
+        
         vector<double> *dvecdata_pterr = 0;
         oldtree->SetBranchAddress("ptErr", &dvecdata_pterr);
 
-        vector<double> *dvecdata_d0 = 0;
-		oldtree->SetBranchAddress("d0", &dvecdata_d0);
+        vector<double> *dvecdata_dxyvtxBS = 0;
+		oldtree->SetBranchAddress("dxyvtxBS", &dvecdata_dxyvtxBS);
         
 		vector<double> *dvecdata_d0err = 0;
 		oldtree->SetBranchAddress("d0err", &dvecdata_d0err);
         
-        vector<double> *dvecdata_dz = 0;
-		oldtree->SetBranchAddress("dz", &dvecdata_dz);
+        vector<double> *dvecdata_dzvtxBS = 0;
+		oldtree->SetBranchAddress("dzvtxBS", &dvecdata_dzvtxBS);
         
 		vector<double> *dvecdata_dzerr = 0;
 		oldtree->SetBranchAddress("dzerr", &dvecdata_dzerr);
@@ -241,12 +237,22 @@ void MTTselection(bool isMC=true)
             oldtree->GetEntry(i);
             // cout << "At entry " << i << endl;
             
-            if (ndata_lumi >= lumi_cut) 
+            //good lumisections for runs
+            if (
+            // ((ndata_lumi >= 90) && (ndata_run == 251721)) ||
+            // (isMC) ||
+            ((ndata_lumi >= 1 && ndata_lumi <=103) && ndata_run == 254987) ||
+            (((ndata_lumi >= 1 && ndata_lumi <=120) || (ndata_lumi >= 153 && ndata_lumi <=214) ) && ndata_run == 254989) ||
+            ((ndata_lumi >= 1 && ndata_lumi <=28) && ndata_run == 254993) ||
+            ((ndata_lumi >= 4 && ndata_lumi <=414) && ndata_run == 255019) ||
+            (((ndata_lumi >= 1 && ndata_lumi <=34) || (ndata_lumi >= 36 && ndata_lumi <=209) || (ndata_lumi >= 306 && ndata_lumi <=325) || (ndata_lumi >= 327 && ndata_lumi <=343) ) && ndata_run == 255029) ||
+            (((ndata_lumi >= 31 && ndata_lumi <=101) || (ndata_lumi >= 125 && ndata_lumi <=231) || (ndata_lumi >= 233 && ndata_lumi <=493) || (ndata_lumi >= 586 && ndata_lumi <=1054) || (ndata_lumi >= 1096 && ndata_lumi <=1199)) && ndata_run == 255031)
+            )
             {
                 if (isMC)
                 {
             // ======================= Start of Vertex Loop ====================
-                    ndata_numberofgtrk = gen_tracks->size();
+                    int ndata_numberofgtrk = gen_tracks->size();
                                 
                     // =================== Start of Trk Loop ===================
                     for (int gt = 0; gt < ndata_numberofgtrk; ++gt)
@@ -278,27 +284,28 @@ void MTTselection(bool isMC=true)
                     if (ndata_vtx == vtx_number_cut)
                     {
                         
-                        if(((*nvecdata_vtxndof)[vtxnumber] > dof_cut) && (fabs((*dvecdata_vtxzBS)[vtxnumber]-ddata_BSz) <= vtxz_cut))
+                        // if(((*nvecdata_vtxndof)[vtxnumber] > dof_cut) && (fabs((*dvecdata_vtxzBS)[vtxnumber]-ddata_BSz) <= vtxz_cut))
+                        if((*nvecdata_vtxndof)[vtxnumber] > dof_cut)
                         {
                             isSelected = true;
-                            ndata_numberofrtrk = reco_tracks->size();
+                            int ndata_numberofrtrk = reco_tracks->size();
                             
                 // =================== Start of Trk Loop =======================
                             for (int rt = 0; rt < ndata_numberofrtrk; ++rt)
                             {
-                                XYZTVector reco_vec = (*reco_tracks)[rt];
+                                // XYZTVector reco_vec = (*reco_tracks)[rt];
 
                                 if ((*nvecdata_highpurity)[rt] == highpurity_cut)
                                 {
-                                    if ((reco_vec.Pt() >= pt_cut) && (fabs(reco_vec.Eta()) <= eta_cut))
+                                    if (((*dvecdata_trpt)[rt] >= pt_cut) && (fabs((*dvecdata_treta)[rt]) <= eta_cut))
                                     {
-                                        if ((*dvecdata_pterr)[rt]/reco_vec.Pt()<ptErr_pt_cut)
+                                        if ((*dvecdata_pterr)[rt]/(*dvecdata_trpt)[rt]<ptErr_pt_cut)
                                         {
-                                            if ((*dvecdata_dz)[rt]/(*dvecdata_dzerr)[rt]<dz_dzErr_cut)
+                                            if ((*dvecdata_dzvtxBS)[rt]/(*dvecdata_dzerr)[rt]<dz_dzErr_cut)
                                             {
-                                                hd0d0err->Fill((*dvecdata_d0)[rt]/(*dvecdata_d0err)[rt]);
+                                                hd0d0err->Fill((*dvecdata_dxyvtxBS)[rt]/(*dvecdata_d0err)[rt]);
                                             
-                                                if ((*dvecdata_d0)[rt]/(*dvecdata_d0err)[rt]<d0_d0Err_cut)
+                                                if ((*dvecdata_dxyvtxBS)[rt]/(*dvecdata_d0err)[rt]<d0_d0Err_cut)
                                                 {
                                                     ++nch;
                                                 }
@@ -323,16 +330,8 @@ void MTTselection(bool isMC=true)
 
         
         newtree->Write();
-        
-        // hgenPt->Draw();
-        // hrecoPt->Draw("same");
-        // gPad->WaitPrimitive();
-        // hgenEta->Draw();
-        // hrecoEta->Draw("same");
-        // gPad->WaitPrimitive();
         hd0d0err->Write();
 
-        // newfile->Write();
         newfile->Close();
         oldfile->Close();
     }
