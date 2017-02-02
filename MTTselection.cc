@@ -108,11 +108,29 @@ void MTTselection(bool isMC=true)
     
     //=========================== Histos for pT, eta ===========================
 
-    TH1F *hd0d0err = new TH1F ("d0d0err", "d0 d0err", 400, -20, 20);
+    // TH1F *hd0d0err = new TH1F ("d0d0err", "d0 d0err", 400, -20, 20);
     // TH1F *hgenPt = new TH1F ("gen Pt", "Normalized data p_{T}", 200, 0, 10);
     // TH1F *hrecoPt = new TH1F ("reco Pt", "Normalized data p_{T}", 200, 0, 10);
     // TH1F *hgenEta = new TH1F("gen eta", "Normalised data #eta", 50, -2.5, 2.5);
     // TH1F *hrecoEta = new TH1F("reco eta", "Normalised data #eta", 50, -2.5, 2.5);
+
+    // ===========================define variables for new TTree============
+
+    int gennch, nch;
+    bool isSelected, Charged;
+    
+    // ===========================define new ROOT file======================
+    
+    TFile *newfile = new TFile("selected_mcTree.root","recreate");
+    TTree *newtree = new TTree("newtree","Selected");
+    newtree->Branch("nch",&nch,"nch/I");
+    newtree->Branch("isSelected",&isSelected,"isSelected/O");
+    
+    if(isMC)
+    {
+        newtree->Branch("gennch",&gennch,"gennch/I");
+        newtree->Branch("Charged",&Charged,"Charged/O");
+    }
 
     //============================Starting Loop over files====================== 
     for(vector<TString>::iterator itfiles = vfiles->begin() ; itfiles != vfiles->end(); ++itfiles)
@@ -132,24 +150,6 @@ void MTTselection(bool isMC=true)
             oldtree = (TTree*)oldfile->Get("tree/tree");
         }   
         
-        // ===========================define variables for new TTree============
-
-        int gennch, nch;
-        bool isSelected, Charged;
-        
-        // ===========================define new ROOT file======================
-        
-        TFile *newfile = new TFile("selected_"+*itfiles,"recreate");
-        TTree *newtree = new TTree("newtree","Selected");
-        newtree->Branch("nch",&nch,"nch/I");
-        newtree->Branch("isSelected",&isSelected,"isSelected/O");
-        
-        if(isMC)
-        {
-            newtree->Branch("gennch",&gennch,"gennch/I");
-            newtree->Branch("Charged",&Charged,"Charged/O");
-        }
-
         // ===========================define variables to read TTree============
 
         int ndata_lumi = 0;
@@ -240,7 +240,7 @@ void MTTselection(bool isMC=true)
             //good lumisections for runs
             if (
             // ((ndata_lumi >= 90) && (ndata_run == 251721)) ||
-            // (isMC) ||
+            (isMC) ||
             ((ndata_lumi >= 1 && ndata_lumi <=103) && ndata_run == 254987) ||
             (((ndata_lumi >= 1 && ndata_lumi <=120) || (ndata_lumi >= 153 && ndata_lumi <=214) ) && ndata_run == 254989) ||
             ((ndata_lumi >= 1 && ndata_lumi <=28) && ndata_run == 254993) ||
@@ -299,13 +299,11 @@ void MTTselection(bool isMC=true)
                                 {
                                     if (((*dvecdata_trpt)[rt] >= pt_cut) && (fabs((*dvecdata_treta)[rt]) <= eta_cut))
                                     {
-                                        if ((*dvecdata_pterr)[rt]/(*dvecdata_trpt)[rt]<ptErr_pt_cut)
+                                        if (fabs((*dvecdata_pterr)[rt]/(*dvecdata_trpt)[rt])<ptErr_pt_cut)
                                         {
-                                            if ((*dvecdata_dzvtxBS)[rt]/(*dvecdata_dzerr)[rt]<dz_dzErr_cut)
+                                            if (fabs((*dvecdata_dzvtxBS)[rt]/(*dvecdata_dzerr)[rt])<dz_dzErr_cut)
                                             {
-                                                hd0d0err->Fill((*dvecdata_dxyvtxBS)[rt]/(*dvecdata_d0err)[rt]);
-                                            
-                                                if ((*dvecdata_dxyvtxBS)[rt]/(*dvecdata_d0err)[rt]<d0_d0Err_cut)
+                                                if (fabs((*dvecdata_dxyvtxBS)[rt]/(*dvecdata_d0err)[rt])<d0_d0Err_cut)
                                                 {
                                                     ++nch;
                                                 }
@@ -328,15 +326,13 @@ void MTTselection(bool isMC=true)
         }
         // =========================== End of Evt Loop =========================
 
-        
-        newtree->Write();
-        hd0d0err->Write();
-
-        newfile->Close();
         oldfile->Close();
     }
     // =========================== End of File Loop ============================
     
+    newfile = newtree->GetCurrentFile(); //to get the pointer to the current file
+    newfile->Write();
+    newfile->Close();
 }
 
 #ifndef __CINT__
