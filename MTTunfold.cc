@@ -93,12 +93,12 @@ void MTTunfold()
 
     
 	//Histograms for checking training and unfolding (MC)
-	TH1F* hGenNch = new TH1F("hGenNch", "Normalised Monte Carlo Generated (Training);nch particles;# Events", 300, -0.5, 299.5);
-	TH1F* hRecoNch = new TH1F("hRecoNch", "Normalised Monte Carlo Reconstructed (Training);nch particles;# Events", 300, -0.5, 299.5);
-    TH1F* hUnfoldedNch = new TH1F("hUnfoldedNch", "Unfolded Monte Carlo Reconstructed (Training);nch particles;# Events", 300, -0.5, 299.5);
+	TH1F* hGenNch = new TH1F("hGenNch", "Normalised Monte Carlo Generated (Training);nch particles;# Events", 200, 0, 200);
+	TH1F* hRecoNch = new TH1F("hRecoNch", "Normalised Monte Carlo Reconstructed (Training);nch particles;# Events", 200, 0, 200);
+    TH1F* hUnfoldedNch = new TH1F("hUnfoldedNch", "Unfolded Monte Carlo Reconstructed (Training);nch particles;# Events", 200, 0, 200);
     // TH1F* hNoCh = new TH1F("hNoCh", "No Charged Particles Generated;nch particles;# Events", 300, -0.5, 299.5);
 
-    //Normalisation variables
+    // Normalisation variables
     int nGenNch, nRecoNch, nUnfoldedNch;
     
 	//RooUnfoldResponse variable
@@ -229,8 +229,8 @@ void MTTunfold()
 	// TH1F* ratio_nch_true_unfold;
     
     //Histograms for unfolding (data)
-	TH1F* hdataRecoNch = new TH1F("hdataNch", "Normalised Data Reconstructed (Unfolding);nch particles;# Events", 300, -0.5, 299.5);
-    TH1F* hdataUnfoldedNch = new TH1F("hdataUnfoldedNch", "Unfolded Data Reconstructed (Unfolding);nch particles;# Events", 300, -0.5, 299.5);
+	TH1F* hdataRecoNch = new TH1F("hdataNch", "Normalised Data Reconstructed (Unfolding);nch particles;# Events", 200, 0, 200);
+    TH1F* hdataUnfoldedNch = new TH1F("hdataUnfoldedNch", "Unfolded Data Reconstructed (Unfolding);nch particles;# Events", 200, 0, 200);
     
     //Normalisation variables
     int ndataRecoNch, ndataUnfoldedNch;
@@ -268,8 +268,6 @@ void MTTunfold()
         //!Branch addresses are not updated to match new skims
         tree2->SetBranchStatus("*", 1);
         tree2->SetBranchAddress("isSelected", &isSelected);
-        tree2->SetBranchAddress("Charged", &Charged);
-        tree2->SetBranchAddress("gennch", &gennch);
         tree2->SetBranchAddress("nch", &nch);
         cout<< "All branches set." << endl;
 
@@ -303,12 +301,12 @@ void MTTunfold()
                 nch_unfolding = nch;
             }
             
-            if (isSelected==true && Charged==true)
+            if (isSelected==true)
             {
                 hdataRecoNch->Fill(nch_unfolding);
                 ndataRecoNch++;
             }
-            else if (isSelected==false && Charged==true)
+            else if (isSelected==false)
             {
 
             }
@@ -328,13 +326,15 @@ void MTTunfold()
 	cout<< "=======================Unfolding=====================" <<endl;
 	cout<< "Unfolding charged particle multiplicity..." << endl;
     
-    //Normalise before unfolding??
-    hGenNch->Scale(1./nGenNch);
-    hRecoNch->Scale(1./nRecoNch);
-    hdataRecoNch->Scale(1./ndataRecoNch);
-    
 	RooUnfoldBayes nch_unfold(&response_nch, hRecoNch, 3);
-	RooUnfoldBayes data_nch_unfold(&response_nch, hdataRecoNch, 3);
+	// RooUnfoldBayes data_nch_unfold(&response_nch, hdataRecoNch, 3);
+    
+    //Temp code to unfold from histogram inistead of tree
+    TFile *tempfile = new TFile("ZB_Multiplicity_2.root", "READ");
+    TH1F * hdatatempRecoNch = (TH1F*)tempfile->Get("Multiplicity");
+    tempfile->Close();    
+	RooUnfoldBayes data_nch_unfold(&response_nch, hdatatempRecoNch, 3);
+    
 	hUnfoldedNch = (TH1F*) nch_unfold.Hreco();
 	hdataUnfoldedNch = (TH1F*) data_nch_unfold.Hreco();
     
@@ -346,6 +346,16 @@ void MTTunfold()
 	//=========================================Start writing to output file===========================================
 	TFile* outputunfold = new TFile("outputUnfold.root","RECREATE");
 	// outputunfold->cd();
+    
+    hGenNch->Scale(1./nGenNch);
+    hRecoNch->Scale(1./nRecoNch);
+    // hdataRecoNch->Scale(1./ndataRecoNch);
+    
+    //Temp code to handle histogram input
+    hdatatempRecoNch->Scale(1./hdatatempRecoNch->Integral());
+    
+    hUnfoldedNch->Scale(1./hUnfoldedNch->Integral());
+    hdataUnfoldedNch->Scale(1./hdataUnfoldedNch->Integral());
 
     hGenNch->SetLineColor(3);
 	hGenNch->Write();
@@ -356,10 +366,15 @@ void MTTunfold()
     hUnfoldedNch->SetLineColor(1);
     hUnfoldedNch->Write();
 
-    hdataRecoNch->SetLineColor(2);
-	hdataRecoNch->Write();
+    // hdataRecoNch->SetLineColor(2);
+	// hdataRecoNch->Write();
+    
+    //Temp code to handle histogram input
+    hdatatempRecoNch->SetLineColor(2);
+	hdatatempRecoNch->Write();
     
     hdataUnfoldedNch->SetLineColor(1);
+    hdataUnfoldedNch->SetNameTitle("Unfolded Multiplicity", "Unfolded Multiplicity (Normalised)");
     hdataUnfoldedNch->Write();
     
     // hNoCh->Write();
