@@ -1,4 +1,3 @@
-
 DOWNLOADS
 =========
 Root 5.34.36 (Windows Visual Studio 2013)
@@ -65,23 +64,48 @@ WSL (Windows Subsystem for Linux)
 ROOT for WSL
 ============
 1. Choose either to build from source or download the binary (Ubuntu 14 gcc4.8	root_v5.34.36.Linux-ubuntu14-x86_64-gcc4.8.tar.gz)
+	To download binary in bash: "wget https://root.cern.ch/download/root_v5.34.36.Linux-ubuntu14-x86_64-gcc4.8.tar.gz"
 
 2. Instructions for building root are here (https://root.cern/building-root). For the binary, simply unpack in desired directory/home (eg. tar -xf filename)
 
-3. Append the following lines to .bashrc (~/.bashrc) "source [path]/thisroot.sh" and "export DISPLAY=localhost:1"
+3. Append the following lines to .bashrc (~/.bashrc) "source [path]/thisroot.sh" and "export DISPLAY=localhost:0"
+	Bash input: 	echo 'source [path]/thisroot.sh' >> ~/.bashrc
+			echo 'export DISPLAY="localhost:0"' >> ~/.bashrc
 	Alternative: navigate to dir containing thisroot.sh and run "source thisroot.sh" then "which thisroot.sh" to determine the right path
 
-4. Restart bash, type "root" and analyse away
+4. The machine name needs to be added to /etc/hosts (to fix "unable to resolve localhost").
+	The simplest way is to delete the hosts file and restart bash "rm /etc/hosts". The hosts file will be automatically updated.
+
+5. Restart bash, type "root" and analyse away
 
 
 ROOUNFOLD
 =========
 1. Download from http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
-2. Download zip from https://github.com/kreczko/RooUnfold
+2. Download zip from https://github.com/kreczko/RooUnfold	(Unclear what the differences are between this and above roo installation.)
 
 3. Magic switcharoow with RoounfoldTUnfold.h/.cxx
 
 4. "make"
 
 5. Test with examples as in http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
+
+
+GUI for WSL with VNC
+====================
+TODO in future if there's luxury of time.
+
+
+Utility Programs
+================
+Bitvise for file transfer: https://www.bitvise.com/ssh-client-download
+	Server host: lxplus.cern.ch
+
+
+MISC
+====
+VNC Tutorial	https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-vnc-on-ubuntu-14-04
+Reddit wiki	https://www.reddit.com/r/bashonubuntuonwindows/wiki/index
+More wiki	https://github.com/abergs/ubuntuonwindows 
+GUI tutorial	https://www.reddit.com/r/Windows10/comments/4w0fbn/full_gui_on_bash_on_ubuntu_on_windows/
