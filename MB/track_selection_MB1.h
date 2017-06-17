@@ -123,12 +123,12 @@ void track_selection_MB1()
 	
 //============================================== Histos for pT, eta, phi ==============================================================
 
-    TH1F *data_pt_histo = new TH1F ("data pT", "Normalized data p_{T}", 200, 0, 10);
-    TH1F *data_eta_histo = new TH1F("data eta", "Normalised data #eta", 50, -2.5, 2.5);
-    TH1F *data_phi_histo = new TH1F ("data phi", "Normalized_data #phi", 60, -3, 3);
+    TH1D *data_pt_histo = new TH1D ("data pT", "Normalized data p_{T}", 200, 0, 10);
+    TH1D *data_eta_histo = new TH1D("data eta", "Normalised data #eta", 50, -2.5, 2.5);
+    TH1D *data_phi_histo = new TH1D ("data phi", "Normalized_data #phi", 60, -3, 3);
 
 //================================================== Histos for dz and sigma_dz =========================================================================
-    TH1F *data_dzleaf = new TH1F ("data_dz", "data dz", 400, -10, 10);
+    TH1D *data_dzleaf = new TH1D ("data_dz", "data dz", 400, -10, 10);
     // TH1F *data_sigmadzcalc = new TH1F ("data_sigmadzcalc", "data #sigma_{z} calc", 200, 0, 4);//plot of sigmadz using formula from WY
     // TH1F *data_sigmadzrun1 = new TH1F ("data_sigmadzrun1", "data #sigma_{z} run 1", 200, 0, 4);//plot of sigmadz using formula from run 1
     // TH1F *data_dz_sigmadz = new TH1F ("data_dz_sigmadz", "data d_{z}/#sigma_{z}", 160, -20, 20);
@@ -139,14 +139,14 @@ void track_selection_MB1()
 
 
     // TH1F *data_dzBS_dzErr = new TH1F ("data_dzBS_dzErr", "data d_{z} BS/d_{z} Err", 160, -20, 20);	
-    TH1F *data_dzvtxBS_dzErr = new TH1F ("data_dzvtxBS_dzErr", "data d_{z} vtxBS/d_{z} Err", 160, -20, 20);	
+    TH1D *data_dzvtxBS_dzErr = new TH1D ("data_dzvtxBS_dzErr", "data d_{z} vtxBS/d_{z} Err", 160, -20, 20);	
     // TH1F *data_dxyBS_d0Err = new TH1F ("data_dxyBS_d0Err", "data d_{xy} BS/d_{0} Err", 160, -20, 20);		
-    TH1F *data_dxyvtxBS_d0Err = new TH1F ("data_dxyvtxBS_d0Err", "data d_{xy} vtxBS/d_{0} Err", 160, -20, 20);	
+    TH1D *data_dxyvtxBS_d0Err = new TH1D ("data_dxyvtxBS_d0Err", "data d_{xy} vtxBS/d_{0} Err", 160, -20, 20);	
 
 
 //================================================== Histos for d0 and sigma_d0 =========================================================================
 
-    TH1F *data_d0leaf = new TH1F ("data_d0_calcrun1", "data d_{0} calc run 1", 100, -1, 1); //plot of d0 using leaf value to determine how much data is cut
+    TH1D *data_d0leaf = new TH1D ("data_d0_calcrun1", "data d_{0} calc run 1", 100, -1, 1); //plot of d0 using leaf value to determine how much data is cut
     // TH1F *data_sigmad0calc = new TH1F ("data_sigmad0calc", "data #sigma_{xy} calc", 200, 0, 4);//plot of sigmad0 using formula from WY
     // TH1F *data_sigmad0run1 = new TH1F ("data_sigmad0run1", "data #sigma_{xy} run 1", 200, 0, 4);//plot of sigmad0 using run 1 formula
 
@@ -161,19 +161,23 @@ void track_selection_MB1()
 
 //================================================== Histos for pT and sigma_pT =========================================================================
 
-    TH1F *data_sigmapt_pt = new TH1F ("data_sigmapt_pt", "data #sigma_{p_{T}}/p_{T}", 20, 0, 0.2);
+    TH1D *data_sigmapt_pt = new TH1D ("data_sigmapt_pt", "data #sigma_{p_{T}}/p_{T}", 20, 0, 0.2);
 
 //================================================== Histos for chi2n and ValidHits =========================================================================
 
-    TH1F *data_validhits = new TH1F ("Tracks_vs_validhits", "Tracks vs validhits", 50, 0, 50);
-    TH1F *data_chi2n = new TH1F ("Tracks_vs_chi2n", "Tracks vs #chi^{2/ndof}", 50, 0, 5);
+    TH1D *data_validhits = new TH1D ("Tracks_vs_validhits", "Tracks vs validhits", 50, 0, 50);
+    TH1D *data_chi2n = new TH1D ("Tracks_vs_chi2n", "Tracks vs #chi^{2/ndof}", 50, 0, 5);
 
 //================================================== Histos for Multiplicity =========================================================================
 
-    TH1F *data_normmultiplicity = new TH1F("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
-	TH1F *data_multiplicity = new TH1F("Multiplicity", "Multiplicity", 200, 0, 200);
-    TH1F *data_vtxzminusvtxz = new TH1F ("vtxzminusvtxz", "vtxzminusvtxz", 800, -4, 4);
-    TH1F *data_vtxzposn = new TH1F ("vtxzposn", "vtxzpos^{n}", 400, -20, 20);
+    TH1D *data_normmultiplicity = new TH1D("Normalized_Multiplicity", "Normalized Multiplicity", 200, 0, 200);
+	TH1D *data_multiplicity = new TH1D("Multiplicity", "Multiplicity", 200, 0, 200);
+	TH1D *data_multiplicity_ZB = new TH1D("Multiplicity_ZB", "Multiplicity_ZB", 200, 0, 200);
+	TH1D *data_multiplicity_HM85 = new TH1D("Multiplicity_HM85", "Multiplicity_HM85", 200, 0, 200);
+	//TH1D *data_multiplicity_ZB_efficiency = new TH1D("Multiplicity_ZB_efficiency", "Multiplicity_ZB_efficiency", 200, 0, 200);
+	//TH1D *data_multiplicity_HM85_efficiency = new TH1D("Multiplicity_HM85_efficiency", "Multiplicity_HM85_efficiency", 200, 0, 200);
+    TH1D *data_vtxzminusvtxz = new TH1D ("vtxzminusvtxz", "vtxzminusvtxz", 800, -4, 4);
+    TH1D *data_vtxzposn = new TH1D ("vtxzposn", "vtxzpos^{n}", 400, -20, 20);
 
 	
 //===========================retrieve ROOT file============================
@@ -187,7 +191,7 @@ void track_selection_MB1()
 	vector<TString> *datafiles = new vector<TString>();
     cout << "Getting list of files..." << endl;
 
-    datafiles = getListOfFiles("MB1_list_test.txt");
+    datafiles = getListOfFiles("MB1_list.txt");
     cout << "File list stored" << endl;
 
         TFile *datafile;
@@ -300,9 +304,31 @@ void track_selection_MB1()
 
     vector<float> *fvecdata_trackschi2n = 0;
     datatree->SetBranchAddress("chi2n", &fvecdata_trackschi2n);
+	
+	
+	vector<int> *triggerZB = 0;
+	datatree->SetBranchAddress("trigger", &triggerZB);
+	
+	vector<int> *triggerMB = 0;
+	datatree->SetBranchAddress("triggerMB", &triggerMB);
+	
+	vector<int> *triggerHM60 = 0;
+	datatree->SetBranchAddress("triggerHM60", &triggerHM60);
+	
+	vector<int> *triggerHM85 = 0;
+	datatree->SetBranchAddress("triggerHM85", &triggerHM85);	
 
-
-
+	vector<int> *triggerHM110 = 0;
+	datatree->SetBranchAddress("triggerHM110", &triggerHM110);
+	
+	vector<int> *triggerHM135 = 0;
+	datatree->SetBranchAddress("triggerHM135", &triggerHM135);
+	
+	vector<int> *triggerHM160 = 0;
+	datatree->SetBranchAddress("triggerHM160", &triggerHM160);	
+	
+	
+	
     Int_t ndata_totalEvt = (Int_t)datatree->GetEntries();
     cout << "There is a total of " << ndata_totalEvt << " events." << endl;
 
@@ -571,6 +597,19 @@ void track_selection_MB1()
                                 data_multiplicity->Fill(fdata_multiplicity);
 								data_normmultiplicity->Fill(fdata_multiplicity);
 								++fdata_multiplicity_norm;
+								//========================= Filling of triggered efficiencies ===============================================
+								
+								
+								if ((*triggerZB)[0] == 1)
+								{
+									data_multiplicity_ZB->Fill(fdata_multiplicity);
+								}	
+								
+								if ((*triggerHM85)[0] == 1)
+								{
+									data_multiplicity_HM85->Fill(fdata_multiplicity);
+								}	
+								
 //========================================================= End of Trk Loop ================================================================
                             }
                         }
@@ -590,7 +629,8 @@ void track_selection_MB1()
     // cout << "cut on d0 is " << sqrt(0.0025 - fdata_wx*fdata_wy) << endl;
     // cout << "Largest z-coordinate of BS is " << fdata_vtxzBSupper << endl;
 
-	TFile data_plot("/afs/cern.ch/user/w/wyuen/public/MB1_Multiplicity_test.root", "recreate");
+	//TFile data_plot("/afs/cern.ch/user/w/wyuen/public/MB1_Multiplicity_test.root", "recreate");
+	TFile data_plot("/afs/cern.ch/user/q/qileong/public/MB1_Multiplicity_test.root", "recreate");
     // TFile data_plot("C:/Users/User/Desktop/CERN/Multiplicity/Multiplicity_ZB031_nonBS.root", "recreate");
 	// TFile data_plot("C:/Users/User/Desktop/CERN/Multiplicity/Multiplicity_HM85_031.root", "recreate");
     // TCanvas *canvas = new TCanvas ("data eta", "data #eta");
@@ -706,6 +746,23 @@ void track_selection_MB1()
     data_multiplicity->GetYaxis()->SetTitleOffset(1.3);
     data_multiplicity->GetYaxis()->SetTitle("Number of Tracks");
     data_multiplicity->Write();
+	
+	
+    data_multiplicity_ZB->GetXaxis()->SetTitle("Multiplicity_ZB");
+    data_multiplicity_ZB->GetYaxis()->SetTitleOffset(1.3);
+    data_multiplicity_ZB->GetYaxis()->SetTitle("Number of Tracks");
+    data_multiplicity_ZB->Write();
+
+    data_multiplicity_HM85->GetXaxis()->SetTitle("Multiplicity_HM85");
+    data_multiplicity_HM85->GetYaxis()->SetTitleOffset(1.3);
+    data_multiplicity_HM85->GetYaxis()->SetTitle("Number of Tracks");
+    data_multiplicity_HM85->Write();	
+	
+	//TH1D *data_multiplicity_HM85_efficiency = (TH1D*)data_multiplicity_HM85->Clone("data_multiplicity_HM85_efficiency");
+	//TH1D *data_multiplicity_HM85_efficiency->Divide(data_multiplicity);
+	//data_multiplicity_HM85_efficiency->Write();
+	//TH1D *data_multiplicity_ZB_efficiency = (*data_multiplicity_ZB)/(*data_multiplicity);
+	//data_multiplicity_ZB_efficiency->Write();
 
     data_normmultiplicity->Scale(1/fdata_multiplicity_norm);
     data_normmultiplicity->GetXaxis()->SetTitle("Multiplicity");
