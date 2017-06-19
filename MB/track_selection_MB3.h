@@ -69,7 +69,7 @@ vector<TString>* getListOfFiles(TString strfiles){
   return vfiles;
 }
 
-void track_selection_MB1()
+void track_selection_MB3()
 {
     //===========================implement cuts================================
     const double eta_cut = 2.4;
@@ -191,7 +191,7 @@ void track_selection_MB1()
 	vector<TString> *datafiles = new vector<TString>();
     cout << "Getting list of files..." << endl;
 
-    datafiles = getListOfFiles("MB1_list.txt");
+    datafiles = getListOfFiles("MB3_list.txt");
     cout << "File list stored" << endl;
 
         TFile *datafile;
@@ -630,7 +630,7 @@ void track_selection_MB1()
     // cout << "Largest z-coordinate of BS is " << fdata_vtxzBSupper << endl;
 
 	//TFile data_plot("/afs/cern.ch/user/w/wyuen/public/MB1_Multiplicity_test.root", "recreate");
-	TFile data_plot("/afs/cern.ch/user/q/qileong/public/MB1_Multiplicity.root", "recreate");
+	TFile data_plot("/afs/cern.ch/user/q/qileong/public/MB3_Multiplicity.root", "recreate");
     // TFile data_plot("C:/Users/User/Desktop/CERN/Multiplicity/Multiplicity_ZB031_nonBS.root", "recreate");
 	// TFile data_plot("C:/Users/User/Desktop/CERN/Multiplicity/Multiplicity_HM85_031.root", "recreate");
     // TCanvas *canvas = new TCanvas ("data eta", "data #eta");
