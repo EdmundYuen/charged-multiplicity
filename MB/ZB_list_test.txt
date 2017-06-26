@@ -1,1 +1,1 @@
-root://eosuser.cern.ch://eos/user/q/qileong/MB1/MB031test_1.root
+root://eoscms//eos/cms/store/user/wei/multiplicity/data/255031/ZB/ZeroBias1/crab_20170224_111701/170224_101714/0000/dataTree_1.root
